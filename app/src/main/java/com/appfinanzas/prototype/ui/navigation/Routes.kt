@@ -1,0 +1,21 @@
+package com.appfinanzas.prototype.ui.navigation
+
+object Routes {
+    const val DASHBOARD = "dashboard"
+    const val INVESTMENTS = "investments"
+    const val PORTFOLIO = "portfolio"
+    const val PROJECTION = "projection"
+    const val MORE = "more"
+
+    const val INVESTMENT_DETAIL = "investmentDetail/{investmentId}"
+    const val ADD_INVESTMENT = "addInvestment"
+    const val ADD_TRANSACTION = "addTransaction/{investmentId}"
+    const val INSTITUTIONS = "institutions"
+    const val SETTINGS = "settings"
+
+    const val ARG_INVESTMENT_ID = "investmentId"
+
+    fun investmentDetail(investmentId: Long): String = "investmentDetail/$investmentId"
+
+    fun addTransaction(investmentId: Long): String = "addTransaction/$investmentId"
+}

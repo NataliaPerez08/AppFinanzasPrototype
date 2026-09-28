@@ -7,9 +7,13 @@ import com.appfinanzas.prototype.domain.model.InvestmentType
 import com.appfinanzas.prototype.domain.model.InvestmentsData
 import com.appfinanzas.prototype.domain.model.Transaction
 import com.appfinanzas.prototype.domain.model.TransactionType
+import com.appfinanzas.prototype.domain.model.NamedAllocation
+import com.appfinanzas.prototype.domain.model.PortfolioSummary
 import com.appfinanzas.prototype.ui.screens.investments.toUiState
+import com.appfinanzas.prototype.ui.screens.portfolio.toUiState
 import java.time.LocalDate
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class UiMappersTest {
@@ -78,5 +82,35 @@ class UiMappersTest {
         assertEquals(1, state.transactions.size)
         assertEquals("DEPOSITO", state.transactions[0].typeLabel)
         assertEquals("05/06/2025", state.transactions[0].dateLabel)
+    }
+
+    @Test
+    fun `portfolio summary maps allocations to percentages`() {
+        val summary = PortfolioSummary(
+            portfolioValue = 5_000.0,
+            investedCapital = 4_000.0,
+            profit = 1_000.0,
+            performance = 25.0,
+            byCategory = emptyList(),
+            byInstitution = listOf(
+                NamedAllocation("GBM", 3_000.0),
+                NamedAllocation("NU", 2_000.0),
+            ),
+            byCurrency = listOf(NamedAllocation("MXN", 5_000.0)),
+            investmentCount = 2,
+        )
+
+        val state = summary.toUiState()
+
+        assertEquals(5_000.0, state.portfolioValue, 0.001)
+        assertEquals(1_000.0, state.profit, 0.001)
+        assertEquals(25.0, state.performance, 0.001)
+        assertFalse(state.isEmpty)
+        assertEquals("GBM", state.byInstitution[0].label)
+        assertEquals(60f, state.byInstitution[0].percentage, 0.001f)
+        assertEquals("NU", state.byInstitution[1].label)
+        assertEquals(40f, state.byInstitution[1].percentage, 0.001f)
+        assertEquals("MXN", state.byCurrency[0].label)
+        assertEquals(100f, state.byCurrency[0].percentage, 0.001f)
     }
 }

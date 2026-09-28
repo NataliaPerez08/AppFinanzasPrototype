@@ -46,7 +46,7 @@ fun AddInvestmentScreen(onNavigate: (String) -> Unit) {
 
     FinanceScreen(
         title = "Nueva inversión",
-        subtitle = "Paso 1 de 3",
+        subtitle = "",
         selectedTab = Routes.INVESTMENTS,
         onNavigate = onNavigate,
     ) {

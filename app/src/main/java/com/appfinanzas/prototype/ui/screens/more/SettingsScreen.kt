@@ -54,6 +54,11 @@ fun SettingsScreen(onNavigate: (String) -> Unit) {
                     value = state.isrText,
                     onValueChange = viewModel::onIsrChange,
                 )
+                FinanceTextField(
+                    label = "Rendimiento esperado",
+                    value = state.expectedReturnText,
+                    onValueChange = viewModel::onExpectedReturnChange,
+                )
                 val formError = state.formError
                 if (formError != null) {
                     FinanceErrorText(formError)

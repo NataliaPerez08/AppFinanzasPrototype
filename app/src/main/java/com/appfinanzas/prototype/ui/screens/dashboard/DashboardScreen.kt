@@ -87,7 +87,7 @@ private fun DashboardContent(state: DashboardUiState) {
             contentDescription = "Evolución histórica del patrimonio",
         )
         Text(
-            text = "1D   1S   1M   3M   1A   TODO",
+            text = "1D   1S   1M   3M   1A   TODOS",
             style = MaterialTheme.typography.labelSmall,
             color = FinanzasColors.Text,
         )

@@ -14,10 +14,10 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun FinanceScreen(
     title: String,
-    subtitle: String = "",
     selectedTab: String,
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier,
+    subtitle: String = "",
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(modifier.fillMaxSize()) {

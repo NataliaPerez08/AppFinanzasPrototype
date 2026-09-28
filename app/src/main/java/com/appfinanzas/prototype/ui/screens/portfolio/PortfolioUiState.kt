@@ -1,7 +1,5 @@
 package com.appfinanzas.prototype.ui.screens.portfolio
 
-import com.appfinanzas.prototype.domain.model.CategoryAllocation
-import com.appfinanzas.prototype.domain.model.NamedAllocation
 import com.appfinanzas.prototype.domain.model.PortfolioSummary
 import com.appfinanzas.prototype.ui.components.AllocationItem
 
@@ -36,15 +34,3 @@ internal fun PortfolioSummary.toUiState(): PortfolioUiState {
         isEmpty = investmentCount == 0,
     )
 }
-
-internal fun CategoryAllocation.toUiAllocation(total: Double): AllocationItem =
-    AllocationItem(
-        label = category.label,
-        percentage = if (total > 0.0) (value / total * 100.0).toFloat() else 0f,
-    )
-
-internal fun NamedAllocation.toUiAllocation(total: Double): AllocationItem =
-    AllocationItem(
-        label = label,
-        percentage = if (total > 0.0) (value / total * 100.0).toFloat() else 0f,
-    )

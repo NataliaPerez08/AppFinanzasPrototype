@@ -65,6 +65,7 @@ class ProjectionViewModel(
                                 isEmpty = currentValue == 0.0,
                                 inflationText = state.inflationText.ifBlank { settings.estimatedInflation.toString() },
                                 isrText = state.isrText.ifBlank { settings.estimatedIsr.toString() },
+                                expectedReturnText = state.expectedReturnText.ifBlank { settings.expectedReturn.toString() },
                             )
                         }
                         recompute()

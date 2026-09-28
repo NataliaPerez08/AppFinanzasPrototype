@@ -37,6 +37,7 @@ class SettingsViewModel(
                         baseCurrency = settings.baseCurrency,
                         inflationText = settings.estimatedInflation.toString(),
                         isrText = settings.estimatedIsr.toString(),
+                        expectedReturnText = settings.expectedReturn.toString(),
                     )
                 }
             } catch (e: Exception) {
@@ -57,17 +58,26 @@ class SettingsViewModel(
         _uiState.update { it.copy(isrText = value, saved = false) }
     }
 
+    fun onExpectedReturnChange(value: String) {
+        _uiState.update { it.copy(expectedReturnText = value, saved = false) }
+    }
+
     fun save() {
         val state = _uiState.value
         if (state.isSubmitting) return
         val inflation = state.inflationText.toDoubleOrNull()
         val isr = state.isrText.toDoubleOrNull()
+        val expectedReturn = state.expectedReturnText.toDoubleOrNull()
         if (inflation == null || inflation < 0.0) {
             _uiState.update { it.copy(formError = "Inflación inválida") }
             return
         }
         if (isr == null || isr < 0.0) {
             _uiState.update { it.copy(formError = "ISR inválido") }
+            return
+        }
+        if (expectedReturn == null || expectedReturn < 0.0) {
+            _uiState.update { it.copy(formError = "Rendimiento inválido") }
             return
         }
         viewModelScope.launch {
@@ -77,6 +87,7 @@ class SettingsViewModel(
                     baseCurrency = state.baseCurrency,
                     estimatedInflation = inflation,
                     estimatedIsr = isr,
+                    expectedReturn = expectedReturn,
                 ),
             )
             _uiState.update { it.copy(isSubmitting = false, saved = true) }

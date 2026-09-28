@@ -92,7 +92,7 @@ private fun InvestmentDetailContent(
     FinancePanel {
         MetricCard(label = "Cantidad", value = String.format(Locale.US, "%.2f", state.quantity))
         MoneyMetric(label = "Capital invertido", amount = state.investedCapital)
-        MoneyMetric(label = "Valor actual MXN", amount = state.currentValue)
+        MoneyMetric(label = "Valor actual", amount = state.currentValue)
         MoneyMetric(label = "Ganancia", amount = state.profit, accent = true)
         PercentageMetric(label = "Rendimiento", percentage = state.performance)
     }

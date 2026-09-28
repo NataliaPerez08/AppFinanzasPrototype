@@ -11,8 +11,8 @@ import com.appfinanzas.prototype.ui.theme.FinanzasColors
 
 @Composable
 fun FinanceLoadingState(
-    text: String = "CARGANDO…",
     modifier: Modifier = Modifier,
+    text: String = "CARGANDO…",
 ) {
     FinancePanel(modifier) {
         Text(

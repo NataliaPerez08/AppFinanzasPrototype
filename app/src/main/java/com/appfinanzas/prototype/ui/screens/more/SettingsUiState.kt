@@ -7,6 +7,7 @@ data class SettingsUiState(
     val baseCurrency: Currency = Currency.MXN,
     val inflationText: String = "",
     val isrText: String = "",
+    val expectedReturnText: String = "",
     val isSubmitting: Boolean = false,
     val saved: Boolean = false,
     val formError: String? = null,

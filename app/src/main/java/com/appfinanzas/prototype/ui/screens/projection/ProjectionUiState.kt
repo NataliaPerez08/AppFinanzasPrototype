@@ -3,7 +3,7 @@ package com.appfinanzas.prototype.ui.screens.projection
 data class ProjectionUiState(
     val isLoading: Boolean = true,
     val currentValue: Double = 0.0,
-    val expectedReturnText: String = "8.5",
+    val expectedReturnText: String = "",
     val inflationText: String = "",
     val isrText: String = "",
     val nominal: Double = 0.0,

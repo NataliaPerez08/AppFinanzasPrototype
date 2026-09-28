@@ -9,6 +9,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.appfinanzas.prototype.ui.theme.FinanzasColors
 
@@ -31,6 +33,7 @@ fun FinanceTextField(
             onValueChange = onValueChange,
             modifier = Modifier
                 .fillMaxWidth()
+                .semantics { contentDescription = label }
                 .border(1.dp, if (error != null) FinanzasColors.Accent else FinanzasColors.Divider)
                 .padding(12.dp),
             textStyle = MaterialTheme.typography.bodyMedium.copy(color = FinanzasColors.Text),

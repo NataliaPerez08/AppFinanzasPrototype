@@ -76,12 +76,14 @@ class RoomInvestmentRepository(
             preferencesDao.observe(AppSettings.KEY_BASE_CURRENCY),
             preferencesDao.observe(AppSettings.KEY_ESTIMATED_INFLATION),
             preferencesDao.observe(AppSettings.KEY_ESTIMATED_ISR),
-        ) { base, inflation, isr ->
+            preferencesDao.observe(AppSettings.KEY_EXPECTED_RETURN),
+        ) { base, inflation, isr, expectedReturn ->
             AppSettings(
                 baseCurrency = base?.value?.let { runCatching { Currency.valueOf(it) }.getOrNull() }
                     ?: AppSettings().baseCurrency,
                 estimatedInflation = inflation?.value?.toDoubleOrNull() ?: AppSettings().estimatedInflation,
                 estimatedIsr = isr?.value?.toDoubleOrNull() ?: AppSettings().estimatedIsr,
+                expectedReturn = expectedReturn?.value?.toDoubleOrNull() ?: AppSettings().expectedReturn,
             )
         }
 
@@ -102,6 +104,12 @@ class RoomInvestmentRepository(
             PreferencesEntity(
                 key = AppSettings.KEY_ESTIMATED_ISR,
                 value = settings.estimatedIsr.toString(),
+            ),
+        )
+        preferencesDao.upsert(
+            PreferencesEntity(
+                key = AppSettings.KEY_EXPECTED_RETURN,
+                value = settings.expectedReturn.toString(),
             ),
         )
     }

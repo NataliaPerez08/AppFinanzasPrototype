@@ -1,5 +1,6 @@
 package com.appfinanzas.prototype.data
 
+import com.appfinanzas.prototype.domain.model.AppSettings
 import com.appfinanzas.prototype.domain.model.Currency
 import com.appfinanzas.prototype.domain.model.Institution
 import com.appfinanzas.prototype.domain.model.Investment
@@ -10,7 +11,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
@@ -27,8 +27,11 @@ class TestInvestmentRepository(
 
     private val investmentState = MutableStateFlow(investments)
     private val transactionState = MutableStateFlow(transactions.toMutableMap())
+    private val institutionState = MutableStateFlow(institutions)
+    private val settingsState = MutableStateFlow(AppSettings())
     private var nextInvestmentId = (investments.maxOfOrNull { it.id } ?: 0L) + 1
     private var nextTransactionId = (transactions.values.flatten().maxOfOrNull { it.id } ?: 0L) + 1
+    private var nextInstitutionId = (institutions.maxOfOrNull { it.id } ?: 0L) + 1
 
     private fun <T> guarded(inner: Flow<T>): Flow<T> = flow {
         error?.let { throw it }
@@ -48,7 +51,9 @@ class TestInvestmentRepository(
         emit(history)
     }
 
-    override fun observeInstitutions(): Flow<List<Institution>> = flowOf(institutions)
+    override fun observeInstitutions(): Flow<List<Institution>> = guarded(institutionState)
+
+    override fun observeSettings(): Flow<AppSettings> = guarded(settingsState)
 
     override suspend fun saveInvestment(investment: Investment): Long {
         error?.let { throw it }
@@ -71,6 +76,19 @@ class TestInvestmentRepository(
                 map[saved.investmentId] = (map[saved.investmentId] ?: emptyList()) + saved
             }
         }
+        return id
+    }
+
+    override suspend fun saveSettings(settings: AppSettings) {
+        error?.let { throw it }
+        settingsState.value = settings
+    }
+
+    override suspend fun addInstitution(institution: Institution): Long {
+        error?.let { throw it }
+        val id = if (institution.id == 0L) nextInstitutionId++ else institution.id
+        val saved = institution.copy(id = id)
+        institutionState.update { it + saved }
         return id
     }
 }

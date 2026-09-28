@@ -19,6 +19,13 @@ fun String.toFloatList(): List<Float> =
 object InstitutionMapper {
     fun toDomain(entity: InstitutionEntity): Institution =
         Institution(id = entity.id, name = entity.name, kind = entity.kind)
+
+    fun toEntity(domain: Institution): InstitutionEntity =
+        InstitutionEntity(
+            id = domain.id,
+            name = domain.name,
+            kind = domain.kind,
+        )
 }
 
 object InvestmentMapper {

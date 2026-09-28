@@ -1,10 +1,13 @@
 package com.appfinanzas.prototype.data.room
 
 import com.appfinanzas.prototype.data.local.AppDatabase
+import com.appfinanzas.prototype.data.local.entity.PreferencesEntity
 import com.appfinanzas.prototype.data.mapper.InstitutionMapper
 import com.appfinanzas.prototype.data.mapper.InvestmentMapper
 import com.appfinanzas.prototype.data.mapper.TransactionMapper
 import com.appfinanzas.prototype.data.mapper.toFloatList
+import com.appfinanzas.prototype.domain.model.AppSettings
+import com.appfinanzas.prototype.domain.model.Currency
 import com.appfinanzas.prototype.domain.model.Institution
 import com.appfinanzas.prototype.domain.model.Investment
 import com.appfinanzas.prototype.domain.model.Transaction
@@ -67,4 +70,42 @@ class RoomInvestmentRepository(
 
     override suspend fun saveTransaction(transaction: Transaction): Long =
         transactionDao.insert(TransactionMapper.toEntity(transaction))
+
+    override fun observeSettings(): Flow<AppSettings> =
+        combine(
+            preferencesDao.observe(AppSettings.KEY_BASE_CURRENCY),
+            preferencesDao.observe(AppSettings.KEY_ESTIMATED_INFLATION),
+            preferencesDao.observe(AppSettings.KEY_ESTIMATED_ISR),
+        ) { base, inflation, isr ->
+            AppSettings(
+                baseCurrency = base?.value?.let { runCatching { Currency.valueOf(it) }.getOrNull() }
+                    ?: AppSettings().baseCurrency,
+                estimatedInflation = inflation?.value?.toDoubleOrNull() ?: AppSettings().estimatedInflation,
+                estimatedIsr = isr?.value?.toDoubleOrNull() ?: AppSettings().estimatedIsr,
+            )
+        }
+
+    override suspend fun saveSettings(settings: AppSettings) {
+        preferencesDao.upsert(
+            PreferencesEntity(
+                key = AppSettings.KEY_BASE_CURRENCY,
+                value = settings.baseCurrency.name,
+            ),
+        )
+        preferencesDao.upsert(
+            PreferencesEntity(
+                key = AppSettings.KEY_ESTIMATED_INFLATION,
+                value = settings.estimatedInflation.toString(),
+            ),
+        )
+        preferencesDao.upsert(
+            PreferencesEntity(
+                key = AppSettings.KEY_ESTIMATED_ISR,
+                value = settings.estimatedIsr.toString(),
+            ),
+        )
+    }
+
+    override suspend fun addInstitution(institution: Institution): Long =
+        institutionDao.insert(InstitutionMapper.toEntity(institution))
 }

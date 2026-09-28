@@ -1,5 +1,6 @@
 package com.appfinanzas.prototype.data.fake
 
+import com.appfinanzas.prototype.domain.model.AppSettings
 import com.appfinanzas.prototype.domain.model.Currency
 import com.appfinanzas.prototype.domain.model.Institution
 import com.appfinanzas.prototype.domain.model.Investment
@@ -235,5 +236,16 @@ object FakeInvestmentRepository : InvestmentRepository {
     }
 
     override suspend fun saveTransaction(transaction: Transaction): Long =
+        throw UnsupportedOperationException("FakeInvestmentRepository es de solo lectura")
+
+    override fun observeSettings(): Flow<AppSettings> = flow {
+        emit(AppSettings())
+    }
+
+    override suspend fun saveSettings(settings: AppSettings) {
+        throw UnsupportedOperationException("FakeInvestmentRepository es de solo lectura")
+    }
+
+    override suspend fun addInstitution(institution: Institution): Long =
         throw UnsupportedOperationException("FakeInvestmentRepository es de solo lectura")
 }

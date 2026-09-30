@@ -34,18 +34,21 @@ private val typeOptions = InvestmentType.entries.map { type ->
 private val currencyOptions = Currency.entries.map { FinanceOption(value = it.name, label = it.code) }
 
 @Composable
-fun AddInvestmentScreen(onNavigate: (String) -> Unit) {
-    val viewModel: AddInvestmentViewModel = viewModel(factory = AddInvestmentViewModel.Factory)
+fun AddInvestmentScreen(
+    investmentId: Long? = null,
+    onNavigate: (String) -> Unit,
+) {
+    val viewModel: AddInvestmentViewModel = viewModel(factory = AddInvestmentViewModel.factory(investmentId))
     val state by viewModel.uiState.collectAsState()
 
     LaunchedEffect(viewModel) {
-        viewModel.savedEvents.collect { investmentId ->
-            onNavigate(Routes.investmentDetail(investmentId))
+        viewModel.savedEvents.collect { savedId ->
+            onNavigate(Routes.investmentDetail(savedId))
         }
     }
 
     FinanceScreen(
-        title = "Nueva inversión",
+        title = if (state.isEditing) "Editar inversión" else "Nueva inversión",
         subtitle = "",
         selectedTab = Routes.INVESTMENTS,
         onNavigate = onNavigate,
@@ -80,25 +83,27 @@ fun AddInvestmentScreen(onNavigate: (String) -> Unit) {
             selectedValue = state.currency?.name,
             onSelect = viewModel::onCurrencySelected,
         )
-        FinanceTextField(
-            label = "Valor inicial",
-            value = state.initialValueText,
-            onValueChange = viewModel::onInitialValueChange,
-            error = state.fieldErrors["initialValue"],
-        )
-        FinanceTextField(
-            label = "Fecha",
-            value = state.dateText,
-            onValueChange = viewModel::onDateChange,
-            error = state.fieldErrors["date"],
-        )
+        if (!state.isEditing) {
+            FinanceTextField(
+                label = "Valor inicial",
+                value = state.initialValueText,
+                onValueChange = viewModel::onInitialValueChange,
+                error = state.fieldErrors["initialValue"],
+            )
+            FinanceTextField(
+                label = "Fecha",
+                value = state.dateText,
+                onValueChange = viewModel::onDateChange,
+                error = state.fieldErrors["date"],
+            )
+        }
         val formError = state.formError
         if (formError != null) {
             FinanceErrorText(formError)
         }
         Spacer(Modifier.height(8.dp))
         FinanceButton(
-            text = "Guardar inversión",
+            text = if (state.isEditing) "Guardar cambios" else "Guardar inversión",
             enabled = !state.isSubmitting,
             onClick = viewModel::submit,
         )

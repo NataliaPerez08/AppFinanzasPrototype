@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.appfinanzas.prototype.data.local.dao.InstitutionDao
 import com.appfinanzas.prototype.data.local.dao.InvestmentDao
 import com.appfinanzas.prototype.data.local.dao.PreferencesDao
@@ -20,8 +22,8 @@ import com.appfinanzas.prototype.data.local.entity.TransactionEntity
         TransactionEntity::class,
         PreferencesEntity::class,
     ],
-    version = 1,
-    exportSchema = false,
+    version = 2,
+    exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun institutionDao(): InstitutionDao
@@ -31,6 +33,15 @@ abstract class AppDatabase : RoomDatabase() {
 
     companion object {
         const val PORTFOLIO_HISTORY_KEY = "portfolio_history"
+        const val LEDGER_REPAIRED_KEY = "ledger_repaired_v2"
+
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE investments ADD COLUMN cashBalance REAL NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE investments ADD COLUMN averageCost REAL NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE investments ADD COLUMN realizedProfit REAL NOT NULL DEFAULT 0")
+            }
+        }
 
         @Volatile
         private var instance: AppDatabase? = null
@@ -41,7 +52,10 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "app_finanzas.db",
-                ).build().also { instance = it }
+                )
+                    .addMigrations(MIGRATION_1_2)
+                    .build()
+                    .also { instance = it }
             }
     }
 }

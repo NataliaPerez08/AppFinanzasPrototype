@@ -1,5 +1,8 @@
 # Hardening — App Finanzas
 
+> Estado de cumplimiento verificado en `HARDENING_STATUS.md` (P0 completado,
+> P1/P2 pendientes).
+
 ## Objetivo
 
 Validar integralmente los flujos financieros y garantizar consistencia entre:

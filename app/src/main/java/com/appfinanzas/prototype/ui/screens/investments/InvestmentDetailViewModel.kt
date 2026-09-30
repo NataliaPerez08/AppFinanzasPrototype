@@ -6,21 +6,31 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.appfinanzas.prototype.di.AppContainer
+import com.appfinanzas.prototype.domain.usecase.DeleteInvestmentResult
+import com.appfinanzas.prototype.domain.usecase.DeleteInvestmentUseCase
 import com.appfinanzas.prototype.domain.usecase.GetInvestmentDetail
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class InvestmentDetailViewModel(
     private val investmentId: Long,
     private val getInvestmentDetail: GetInvestmentDetail,
+    private val deleteInvestment: DeleteInvestmentUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(InvestmentDetailUiState(isLoading = true))
     val uiState = _uiState.asStateFlow()
+
+    private val deleteEvents = Channel<Unit>(Channel.BUFFERED)
+    val deletedEvents: Flow<Unit> = deleteEvents.receiveAsFlow()
 
     private var loadJob: Job? = null
 
@@ -29,6 +39,16 @@ class InvestmentDetailViewModel(
     }
 
     fun retry() = load()
+
+    fun delete() {
+        viewModelScope.launch {
+            when (deleteInvestment.execute(investmentId)) {
+                is DeleteInvestmentResult.Success -> deleteEvents.send(Unit)
+                is DeleteInvestmentResult.BusinessError ->
+                    _uiState.update { it.copy(error = it.error ?: "No se pudo eliminar la inversión") }
+            }
+        }
+    }
 
     private fun load() {
         loadJob?.cancel()
@@ -49,6 +69,7 @@ class InvestmentDetailViewModel(
                 InvestmentDetailViewModel(
                     investmentId = investmentId,
                     getInvestmentDetail = GetInvestmentDetail(AppContainer.investmentRepository),
+                    deleteInvestment = DeleteInvestmentUseCase(AppContainer.investmentRepository),
                 )
             }
         }

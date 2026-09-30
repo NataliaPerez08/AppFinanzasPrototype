@@ -7,6 +7,7 @@ import com.appfinanzas.prototype.ui.format.DateFormatter
 import java.time.LocalDate
 
 data class AddTransactionUiState(
+    val isEditing: Boolean = false,
     val investmentHeader: InvestmentHeaderUi? = null,
     val type: TransactionType? = null,
     val dateText: String = DateFormatter.format(LocalDate.now()),

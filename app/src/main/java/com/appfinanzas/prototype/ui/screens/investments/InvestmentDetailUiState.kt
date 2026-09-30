@@ -16,6 +16,9 @@ data class InvestmentDetailUiState(
     val quantity: Double = 0.0,
     val investedCapital: Double = 0.0,
     val currentValue: Double = 0.0,
+    val cashBalance: Double = 0.0,
+    val averageCost: Double = 0.0,
+    val realizedProfit: Double = 0.0,
     val profit: Double = 0.0,
     val performance: Double = 0.0,
     val history: List<Float> = emptyList(),
@@ -25,6 +28,7 @@ data class InvestmentDetailUiState(
 )
 
 data class TransactionUi(
+    val id: Long,
     val dateLabel: String,
     val typeLabel: String,
     val amount: Double,
@@ -43,6 +47,9 @@ internal fun InvestmentDetail.toUiState(): InvestmentDetailUiState {
         quantity = investment.quantity,
         investedCapital = investment.investedCapital,
         currentValue = investment.currentValue,
+        cashBalance = investment.cashBalance,
+        averageCost = investment.averageCost,
+        realizedProfit = investment.realizedProfit,
         profit = investment.currentValue - investment.investedCapital,
         performance = investment.returnPercentage,
         history = investment.history,
@@ -52,6 +59,7 @@ internal fun InvestmentDetail.toUiState(): InvestmentDetailUiState {
 
 private fun Transaction.toUi(): TransactionUi =
     TransactionUi(
+        id = id,
         dateLabel = DateFormatter.format(date),
         typeLabel = type.name,
         amount = total,

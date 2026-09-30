@@ -4,6 +4,7 @@ import com.appfinanzas.prototype.data.TestInvestmentRepository
 import com.appfinanzas.prototype.domain.model.Currency
 import com.appfinanzas.prototype.domain.model.InvestmentType
 import com.appfinanzas.prototype.domain.usecase.AddInvestmentUseCase
+import com.appfinanzas.prototype.domain.usecase.UpdateInvestmentUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -36,7 +37,12 @@ class AddInvestmentViewModelTest {
     }
 
     private fun viewModel(repo: TestInvestmentRepository) =
-        AddInvestmentViewModel(AddInvestmentUseCase(repo), repo)
+        AddInvestmentViewModel(
+            investmentId = null,
+            addInvestmentUseCase = AddInvestmentUseCase(repo),
+            updateInvestmentUseCase = UpdateInvestmentUseCase(repo),
+            repository = repo,
+        )
 
     @Test
     fun `loads institutions`() = runTest {

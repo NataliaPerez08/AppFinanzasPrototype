@@ -1,5 +1,6 @@
 package com.appfinanzas.prototype.data.local.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -34,4 +35,7 @@ data class InvestmentEntity(
     val dailyValueChange: Double,
     val returnPercentage: Double,
     val historyCsv: String,
+    @ColumnInfo(defaultValue = "0") val cashBalance: Double = 0.0,
+    @ColumnInfo(defaultValue = "0") val averageCost: Double = 0.0,
+    @ColumnInfo(defaultValue = "0") val realizedProfit: Double = 0.0,
 )

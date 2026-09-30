@@ -10,22 +10,29 @@ import com.appfinanzas.prototype.domain.model.InvestmentType
 import com.appfinanzas.prototype.domain.repository.InvestmentRepository
 import com.appfinanzas.prototype.domain.usecase.AddInvestmentResult
 import com.appfinanzas.prototype.domain.usecase.AddInvestmentUseCase
+import com.appfinanzas.prototype.domain.usecase.UpdateInvestmentResult
+import com.appfinanzas.prototype.domain.usecase.UpdateInvestmentUseCase
+import com.appfinanzas.prototype.domain.validation.InvestmentEditForm
 import com.appfinanzas.prototype.domain.validation.InvestmentForm
 import com.appfinanzas.prototype.domain.validation.InvestmentFormValidator
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class AddInvestmentViewModel(
+    private val investmentId: Long?,
     private val addInvestmentUseCase: AddInvestmentUseCase,
+    private val updateInvestmentUseCase: UpdateInvestmentUseCase,
     repository: InvestmentRepository,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(AddInvestmentUiState())
+    private val _uiState = MutableStateFlow(AddInvestmentUiState(isEditing = investmentId != null))
     val uiState = _uiState.asStateFlow()
 
     private val saveEvents = Channel<Long>(Channel.BUFFERED)
@@ -35,6 +42,24 @@ class AddInvestmentViewModel(
         viewModelScope.launch {
             repository.observeInstitutions().collect { institutions ->
                 _uiState.update { it.copy(institutions = institutions) }
+            }
+        }
+        if (investmentId != null) {
+            viewModelScope.launch {
+                repository.observeInvestment(investmentId)
+                    .filterNotNull()
+                    .first()
+                    .let { investment ->
+                        _uiState.update {
+                            it.copy(
+                                type = investment.type,
+                                institutionId = investment.institution.id,
+                                name = investment.name,
+                                symbol = investment.symbol,
+                                currency = investment.currency,
+                            )
+                        }
+                    }
             }
         }
     }
@@ -96,6 +121,10 @@ class AddInvestmentViewModel(
     fun submit() {
         val state = _uiState.value
         if (state.isSubmitting) return
+        if (investmentId == null) submitCreate(state) else submitUpdate(state)
+    }
+
+    private fun submitCreate(state: AddInvestmentUiState) {
         val form = InvestmentForm(
             type = state.type,
             institutionId = state.institutionId,
@@ -110,8 +139,7 @@ class AddInvestmentViewModel(
             when (val result = addInvestmentUseCase.execute(form)) {
                 is AddInvestmentResult.Success -> saveEvents.send(result.investmentId)
                 is AddInvestmentResult.Error -> {
-                    val errors = result.errors.associate { it.field to it.message }
-                    _uiState.update { it.copy(isSubmitting = false, fieldErrors = errors) }
+                    _uiState.update { it.copy(isSubmitting = false, fieldErrors = result.errors.associate { e -> e.field to e.message }) }
                 }
                 is AddInvestmentResult.BusinessError -> {
                     _uiState.update { it.copy(isSubmitting = false, formError = result.message) }
@@ -120,14 +148,40 @@ class AddInvestmentViewModel(
         }
     }
 
+    private fun submitUpdate(state: AddInvestmentUiState) {
+        val form = InvestmentEditForm(
+            type = state.type,
+            institutionId = state.institutionId,
+            name = state.name,
+            symbol = state.symbol,
+            currency = state.currency,
+        )
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSubmitting = true, formError = null) }
+            when (val result = updateInvestmentUseCase.execute(investmentId!!, form)) {
+                is UpdateInvestmentResult.Success -> saveEvents.send(result.investmentId)
+                is UpdateInvestmentResult.Error -> {
+                    _uiState.update { it.copy(isSubmitting = false, fieldErrors = result.errors.associate { e -> e.field to e.message }) }
+                }
+                is UpdateInvestmentResult.BusinessError -> {
+                    _uiState.update { it.copy(isSubmitting = false, formError = result.message) }
+                }
+            }
+        }
+    }
+
     companion object {
-        val Factory = viewModelFactory {
+        fun factory(investmentId: Long? = null): androidx.lifecycle.ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 AddInvestmentViewModel(
+                    investmentId = investmentId,
                     addInvestmentUseCase = AddInvestmentUseCase(AppContainer.investmentRepository),
+                    updateInvestmentUseCase = UpdateInvestmentUseCase(AppContainer.investmentRepository),
                     repository = AppContainer.investmentRepository,
                 )
             }
         }
+
+        val Factory = factory()
     }
 }

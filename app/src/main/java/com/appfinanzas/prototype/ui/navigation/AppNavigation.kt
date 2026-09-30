@@ -55,6 +55,18 @@ fun FinanzasApp() {
                     AddInvestmentScreen(onNavigate = navController::navigate)
                 }
                 composable(
+                    route = Routes.EDIT_INVESTMENT,
+                    arguments = listOf(
+                        navArgument(Routes.ARG_INVESTMENT_ID) { type = NavType.LongType },
+                    ),
+                ) { entry ->
+                    val investmentId = entry.arguments?.getLong(Routes.ARG_INVESTMENT_ID) ?: 0L
+                    AddInvestmentScreen(
+                        investmentId = investmentId,
+                        onNavigate = navController::navigate,
+                    )
+                }
+                composable(
                     route = Routes.ADD_TRANSACTION,
                     arguments = listOf(
                         navArgument(Routes.ARG_INVESTMENT_ID) { type = NavType.LongType },
@@ -63,6 +75,21 @@ fun FinanzasApp() {
                     val investmentId = entry.arguments?.getLong(Routes.ARG_INVESTMENT_ID) ?: 0L
                     AddTransactionScreen(
                         investmentId = investmentId,
+                        onNavigate = navController::navigate,
+                    )
+                }
+                composable(
+                    route = Routes.EDIT_TRANSACTION,
+                    arguments = listOf(
+                        navArgument(Routes.ARG_INVESTMENT_ID) { type = NavType.LongType },
+                        navArgument(Routes.ARG_TRANSACTION_ID) { type = NavType.LongType },
+                    ),
+                ) { entry ->
+                    val investmentId = entry.arguments?.getLong(Routes.ARG_INVESTMENT_ID) ?: 0L
+                    val transactionId = entry.arguments?.getLong(Routes.ARG_TRANSACTION_ID) ?: 0L
+                    AddTransactionScreen(
+                        investmentId = investmentId,
+                        transactionId = transactionId,
                         onNavigate = navController::navigate,
                     )
                 }

@@ -49,8 +49,8 @@ class TransactionFormValidatorTest {
     }
 
     @Test
-    fun `dividendo does not require quantity`() {
-        val form = TransactionForm(
+    fun `dividendo requires a positive amount`() {
+        val blank = TransactionForm(
             type = TransactionType.DIVIDENDO,
             dateText = "21/09/2026",
             quantityText = "",
@@ -58,7 +58,10 @@ class TransactionFormValidatorTest {
             commissionText = "",
             currency = Currency.MXN,
         )
-        assertTrue(TransactionFormValidator.validate(form).isEmpty())
+        assertTrue(TransactionFormValidator.validate(blank).any { it.field == TransactionFormValidator.FIELD_QUANTITY })
+
+        val filled = blank.copy(quantityText = "50")
+        assertTrue(TransactionFormValidator.validate(filled).isEmpty())
     }
 
     @Test
@@ -72,5 +75,19 @@ class TransactionFormValidatorTest {
             currency = Currency.MXN,
         )
         assertTrue(TransactionFormValidator.validate(form).isEmpty())
+    }
+
+    @Test
+    fun `future date is an error`() {
+        val future = java.time.LocalDate.now().plusDays(1)
+        val text = "%02d/%02d/%04d".format(future.dayOfMonth, future.monthValue, future.year)
+        val errors = TransactionFormValidator.validate(validCompra().copy(dateText = text))
+        assertTrue(errors.any { it.field == TransactionFormValidator.FIELD_DATE })
+    }
+
+    @Test
+    fun `extremely large amount is an error`() {
+        val errors = TransactionFormValidator.validate(validCompra().copy(quantityText = "99999999999"))
+        assertTrue(errors.any { it.field == TransactionFormValidator.FIELD_QUANTITY })
     }
 }

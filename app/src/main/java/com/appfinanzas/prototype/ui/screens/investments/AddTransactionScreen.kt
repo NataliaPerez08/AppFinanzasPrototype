@@ -6,11 +6,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.appfinanzas.prototype.domain.model.TransactionType
 import com.appfinanzas.prototype.ui.components.FinanceButton
+import com.appfinanzas.prototype.ui.components.FinanceConfirmDialog
 import com.appfinanzas.prototype.ui.components.FinanceErrorText
 import com.appfinanzas.prototype.ui.components.FinanceOption
 import com.appfinanzas.prototype.ui.components.FinanceOptionSelector
@@ -38,9 +42,12 @@ private val transactionTypeOptions = TransactionType.entries.map { type ->
 fun AddTransactionScreen(
     investmentId: Long,
     onNavigate: (String) -> Unit,
+    transactionId: Long? = null,
 ) {
-    val viewModel: AddTransactionViewModel = viewModel(factory = AddTransactionViewModel.factory(investmentId))
+    val viewModel: AddTransactionViewModel =
+        viewModel(factory = AddTransactionViewModel.factory(investmentId, transactionId))
     val state by viewModel.uiState.collectAsState()
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(viewModel) {
         viewModel.savedEvents.collect { savedId ->
@@ -49,7 +56,7 @@ fun AddTransactionScreen(
     }
 
     FinanceScreen(
-        title = "Registrar movimiento",
+        title = if (state.isEditing) "Editar movimiento" else "Registrar movimiento",
         subtitle = state.investmentHeader?.subtitle.orEmpty(),
         selectedTab = Routes.INVESTMENTS,
         onNavigate = onNavigate,
@@ -107,9 +114,29 @@ fun AddTransactionScreen(
         }
         Spacer(Modifier.height(8.dp))
         FinanceButton(
-            text = "Guardar movimiento",
+            text = if (state.isEditing) "Guardar cambios" else "Guardar movimiento",
             enabled = !state.isSubmitting,
             onClick = viewModel::submit,
+        )
+        if (state.isEditing) {
+            Spacer(Modifier.height(8.dp))
+            FinanceButton(
+                text = "Eliminar movimiento",
+                enabled = !state.isSubmitting,
+                onClick = { showDeleteDialog = true },
+            )
+        }
+    }
+
+    if (showDeleteDialog) {
+        FinanceConfirmDialog(
+            title = "Eliminar movimiento",
+            message = "Esta acción no se puede deshacer. El saldo de la inversión se recalculará.",
+            onConfirm = {
+                showDeleteDialog = false
+                viewModel.delete()
+            },
+            onDismiss = { showDeleteDialog = false },
         )
     }
 }

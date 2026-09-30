@@ -1,0 +1,144 @@
+package com.appfinanzas.prototype.flow
+
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
+import androidx.room.Room
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import com.appfinanzas.prototype.MainActivity
+import com.appfinanzas.prototype.data.local.AppDatabase
+import com.appfinanzas.prototype.data.room.RoomInvestmentRepository
+import com.appfinanzas.prototype.di.AppContainer
+import com.appfinanzas.prototype.domain.model.Institution
+import com.appfinanzas.prototype.domain.usecase.AddInvestmentResult
+import com.appfinanzas.prototype.domain.usecase.AddInvestmentUseCase
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import org.junit.AfterClass
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.BeforeClass
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+
+@RunWith(AndroidJUnit4::class)
+class AppE2EFlowsTest {
+
+    @get:Rule
+    val composeRule = createAndroidComposeRule<MainActivity>()
+
+    companion object {
+        private lateinit var database: AppDatabase
+        private lateinit var repository: RoomInvestmentRepository
+
+        @BeforeClass
+        @JvmStatic
+        fun setUpClass() {
+            val context = InstrumentationRegistry.getInstrumentation().targetContext
+            database = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+                .allowMainThreadQueries()
+                .build()
+            repository = RoomInvestmentRepository(database)
+            AppContainer.setRepositoryForTest(repository)
+        }
+
+        @AfterClass
+        @JvmStatic
+        fun tearDownClass() {
+            AppContainer.resetForTest()
+            database.close()
+        }
+    }
+
+    @Before
+    fun resetData() {
+        runBlocking {
+            database.clearAllTables()
+            repository.addInstitution(Institution(0, "GBM", "Casa de Bolsa"))
+        }
+    }
+
+    @Test
+    fun createInvestment_throughUi_appearsInPortfolio() {
+        waitForText("+ AGREGAR INVERSIÓN")
+        composeRule.onNodeWithText("+ AGREGAR INVERSIÓN").performClick()
+        waitForText("NUEVA INVERSIÓN")
+
+        clickScrolling("ACCIÓN")
+        clickScrolling("GBM")
+        typeInto("Símbolo / nombre", "Apple")
+        typeInto("Símbolo", "AAPL")
+        clickScrolling("MXN")
+        typeInto("Valor inicial", "10000")
+        clickScrolling("GUARDAR INVERSIÓN")
+
+        waitForText("APPLE")
+
+        composeRule.onNodeWithText("INVERSIONES").performClick()
+        waitForText("APPLE")
+
+        assertTrue(runBlocking { repository.observeInvestments().first() }.isNotEmpty())
+    }
+
+    @Test
+    fun deleteInvestment_fromDetail_returnsToEmptyPortfolio() {
+        seedInvestment()
+
+        composeRule.onNodeWithText("INVERSIONES").performClick()
+        waitForText("APPLE")
+        composeRule.onNodeWithText("APPLE").performClick()
+        waitForText("ELIMINAR INVERSIÓN")
+
+        clickScrolling("ELIMINAR INVERSIÓN")
+        waitForText("ELIMINAR")
+        composeRule.onNodeWithText("ELIMINAR").performClick()
+
+        waitForText("NO HAY INVERSIONES")
+        assertTrue(runBlocking { repository.observeInvestments().first() }.isEmpty())
+    }
+
+    @Test
+    fun registerBuy_updatesDetailQuantity() {
+        seedInvestment()
+
+        composeRule.onNodeWithText("INVERSIONES").performClick()
+        waitForText("APPLE")
+        composeRule.onNodeWithText("APPLE").performClick()
+        waitForText("REGISTRAR MOVIMIENTO")
+
+        clickScrolling("REGISTRAR MOVIMIENTO")
+        waitForText("REGISTRAR MOVIMIENTO")
+        clickScrolling("COMPRA")
+        typeInto("Cantidad", "2")
+        typeInto("Precio MXN", "100")
+        clickScrolling("GUARDAR MOVIMIENTO")
+
+        waitForText("2.00")
+    }
+
+    private fun seedInvestment(): Long = runBlocking {
+        val institutionId = repository.observeInstitutions().first().first().id
+        val result = AddInvestmentUseCase(repository).execute(FlowTestHarness.investmentForm(institutionId))
+        (result as AddInvestmentResult.Success).investmentId
+    }
+
+    private fun waitForText(text: String) {
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
+    private fun clickScrolling(text: String) {
+        composeRule.onNodeWithText(text).performScrollTo().performClick()
+    }
+
+    private fun typeInto(label: String, value: String) {
+        composeRule.onNodeWithContentDescription(label).performScrollTo().performTextInput(value)
+    }
+}

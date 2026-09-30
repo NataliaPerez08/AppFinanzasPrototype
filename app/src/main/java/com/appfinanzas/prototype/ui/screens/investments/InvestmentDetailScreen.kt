@@ -1,5 +1,6 @@
 package com.appfinanzas.prototype.ui.screens.investments
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,14 +11,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.appfinanzas.prototype.domain.model.Currency
 import com.appfinanzas.prototype.ui.components.FinanceButton
+import com.appfinanzas.prototype.ui.components.FinanceConfirmDialog
 import com.appfinanzas.prototype.ui.components.FinanceEmptyState
 import com.appfinanzas.prototype.ui.components.FinanceErrorState
 import com.appfinanzas.prototype.ui.components.FinanceLabel
@@ -41,6 +47,14 @@ fun InvestmentDetailScreen(
 ) {
     val viewModel: InvestmentDetailViewModel = viewModel(factory = InvestmentDetailViewModel.factory(investmentId))
     val state by viewModel.uiState.collectAsState()
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(viewModel) {
+        viewModel.deletedEvents.collect {
+            onNavigate(Routes.INVESTMENTS)
+        }
+    }
+
     FinanceScreen(
         title = state.name.ifBlank { "Detalle de inversión" },
         subtitle = state.subtitle,
@@ -60,8 +74,21 @@ fun InvestmentDetailScreen(
                 investmentId = investmentId,
                 state = state,
                 onNavigate = onNavigate,
+                onDelete = { showDeleteDialog = true },
             )
         }
+    }
+
+    if (showDeleteDialog) {
+        FinanceConfirmDialog(
+            title = "Eliminar inversión",
+            message = "Se eliminarán la inversión y todos sus movimientos. Esta acción no se puede deshacer.",
+            onConfirm = {
+                showDeleteDialog = false
+                viewModel.delete()
+            },
+            onDismiss = { showDeleteDialog = false },
+        )
     }
 }
 
@@ -70,6 +97,7 @@ private fun InvestmentDetailContent(
     investmentId: Long,
     state: InvestmentDetailUiState,
     onNavigate: (String) -> Unit,
+    onDelete: () -> Unit,
 ) {
     FinancePanel {
         Row(
@@ -92,14 +120,23 @@ private fun InvestmentDetailContent(
     FinancePanel {
         MetricCard(label = "Cantidad", value = String.format(Locale.US, "%.2f", state.quantity))
         MoneyMetric(label = "Capital invertido", amount = state.investedCapital)
+        MoneyMetric(label = "Efectivo", amount = state.cashBalance)
+        MoneyMetric(label = "Costo promedio", amount = state.averageCost)
         MoneyMetric(label = "Valor actual", amount = state.currentValue)
         MoneyMetric(label = "Ganancia", amount = state.profit, accent = true)
+        MoneyMetric(label = "Ganancia realizada", amount = state.realizedProfit)
         PercentageMetric(label = "Rendimiento", percentage = state.performance)
     }
     Spacer(Modifier.height(8.dp))
     FinanceButton(text = "Registrar movimiento") {
         onNavigate(Routes.addTransaction(investmentId))
     }
+    Spacer(Modifier.height(8.dp))
+    FinanceButton(text = "Editar inversión") {
+        onNavigate(Routes.editInvestment(investmentId))
+    }
+    Spacer(Modifier.height(8.dp))
+    FinanceButton(text = "Eliminar inversión", onClick = onDelete)
     if (state.transactions.isNotEmpty()) {
         Spacer(Modifier.height(8.dp))
         FinancePanel {
@@ -108,6 +145,7 @@ private fun InvestmentDetailContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .clickable { onNavigate(Routes.editTransaction(investmentId, transaction.id)) }
                         .padding(vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {

@@ -55,6 +55,17 @@ class TestInvestmentRepository(
 
     override fun observeSettings(): Flow<AppSettings> = guarded(settingsState)
 
+    override suspend fun getInvestment(investmentId: Long): Investment? =
+        investmentState.value.firstOrNull { it.id == investmentId }
+
+    override suspend fun getAllInvestments(): List<Investment> = investmentState.value
+
+    override suspend fun getTransaction(transactionId: Long): Transaction? =
+        transactionState.value.values.flatten().firstOrNull { it.id == transactionId }
+
+    override suspend fun getTransactions(investmentId: Long): List<Transaction> =
+        transactionState.value[investmentId] ?: emptyList()
+
     override suspend fun saveInvestment(investment: Investment): Long {
         error?.let { throw it }
         val id = if (investment.id == 0L) nextInvestmentId++ else investment.id
@@ -62,9 +73,26 @@ class TestInvestmentRepository(
         return id
     }
 
+    override suspend fun saveInvestmentWithOpeningTransaction(
+        investment: Investment,
+        openingTransaction: Transaction,
+    ): Long {
+        error?.let { throw it }
+        val id = nextInvestmentId++
+        investmentState.update { it + investment.copy(id = id) }
+        saveTransaction(openingTransaction.copy(investmentId = id))
+        return id
+    }
+
     override suspend fun updateInvestment(investment: Investment) {
         error?.let { throw it }
         investmentState.update { list -> list.map { if (it.id == investment.id) investment else it } }
+    }
+
+    override suspend fun deleteInvestment(investmentId: Long) {
+        error?.let { throw it }
+        investmentState.update { list -> list.filterNot { it.id == investmentId } }
+        transactionState.update { state -> state.toMutableMap().also { it.remove(investmentId) } }
     }
 
     override suspend fun saveTransaction(transaction: Transaction): Long {
@@ -79,6 +107,44 @@ class TestInvestmentRepository(
         return id
     }
 
+    override suspend fun saveTransactionWithInvestment(
+        transaction: Transaction,
+        investment: Investment,
+    ): Long {
+        error?.let { throw it }
+        val id = saveTransaction(transaction)
+        updateInvestment(investment)
+        return id
+    }
+
+    override suspend fun updateTransactionWithInvestment(
+        transaction: Transaction,
+        investment: Investment,
+    ) {
+        error?.let { throw it }
+        transactionState.update { state ->
+            state.toMutableMap().also { map ->
+                val list = map[transaction.investmentId] ?: emptyList()
+                map[transaction.investmentId] = list.map { if (it.id == transaction.id) transaction else it }
+            }
+        }
+        updateInvestment(investment)
+    }
+
+    override suspend fun deleteTransactionWithInvestment(
+        transactionId: Long,
+        investment: Investment,
+    ) {
+        error?.let { throw it }
+        transactionState.update { state ->
+            state.toMutableMap().also { map ->
+                val list = map[investment.id] ?: emptyList()
+                map[investment.id] = list.filterNot { it.id == transactionId }
+            }
+        }
+        updateInvestment(investment)
+    }
+
     override suspend fun saveSettings(settings: AppSettings) {
         error?.let { throw it }
         settingsState.value = settings
@@ -91,6 +157,8 @@ class TestInvestmentRepository(
         institutionState.update { it + saved }
         return id
     }
+
+    override suspend fun repairLedgerIfNeeded() = Unit
 }
 
 fun sampleInvestment(
@@ -122,4 +190,7 @@ fun sampleInvestment(
     dailyValueChange = dailyValueChange,
     returnPercentage = returnPercentage,
     history = listOf(.5f, .5f, .5f),
+    cashBalance = 0.0,
+    averageCost = currentPrice,
+    realizedProfit = 0.0,
 )

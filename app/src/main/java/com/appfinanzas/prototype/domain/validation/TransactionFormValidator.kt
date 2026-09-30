@@ -21,6 +21,8 @@ object TransactionFormValidator {
     const val FIELD_PRICE = "price"
     const val FIELD_COMMISSION = "commission"
 
+    private const val MAX_AMOUNT = 1_000_000_000.0
+
     fun validate(form: TransactionForm): List<FieldError> {
         val errors = mutableListOf<FieldError>()
 
@@ -28,25 +30,39 @@ object TransactionFormValidator {
             errors += FieldError(FIELD_TYPE, "Selecciona un tipo de movimiento")
         }
         val date = parseDate(form.dateText)
-        if (date == null) {
-            errors += FieldError(FIELD_DATE, "Fecha inválida (dd/mm/aaaa)")
+        when {
+            date == null -> errors += FieldError(FIELD_DATE, "Fecha inválida (dd/mm/aaaa)")
+            date.isAfter(LocalDate.now()) -> errors += FieldError(FIELD_DATE, "La fecha no puede ser futura")
         }
 
         val requiresQuantity = form.type == TransactionType.COMPRA || form.type == TransactionType.VENTA
         val quantity = form.quantityText.toDoubleOrNull()
-        if (requiresQuantity && (quantity == null || quantity <= 0.0)) {
-            errors += FieldError(FIELD_QUANTITY, "Ingresa una cantidad mayor a cero")
+        if (requiresQuantity) {
+            when {
+                quantity == null || quantity <= 0.0 -> errors += FieldError(FIELD_QUANTITY, "Ingresa una cantidad mayor a cero")
+                quantity > MAX_AMOUNT -> errors += FieldError(FIELD_QUANTITY, "La cantidad es demasiado grande")
+            }
+        } else if (form.type != null) {
+            when {
+                quantity == null || quantity <= 0.0 -> errors += FieldError(FIELD_QUANTITY, "Ingresa un monto mayor a cero")
+                quantity > MAX_AMOUNT -> errors += FieldError(FIELD_QUANTITY, "El monto es demasiado grande")
+            }
         }
 
-        val requiresPrice = form.type == TransactionType.COMPRA || form.type == TransactionType.VENTA
-        val price = form.priceText.toDoubleOrNull()
-        if (requiresPrice && (price == null || price <= 0.0)) {
-            errors += FieldError(FIELD_PRICE, "Ingresa un precio mayor a cero")
+        if (requiresQuantity) {
+            val price = form.priceText.toDoubleOrNull()
+            when {
+                price == null || price <= 0.0 -> errors += FieldError(FIELD_PRICE, "Ingresa un precio mayor a cero")
+                price > MAX_AMOUNT -> errors += FieldError(FIELD_PRICE, "El precio es demasiado grande")
+            }
         }
 
         val commission = form.commissionText.toDoubleOrNull() ?: 0.0
-        if (form.commissionText.isNotBlank() && commission < 0.0) {
-            errors += FieldError(FIELD_COMMISSION, "La comisión no puede ser negativa")
+        when {
+            form.commissionText.isNotBlank() && commission < 0.0 ->
+                errors += FieldError(FIELD_COMMISSION, "La comisión no puede ser negativa")
+            commission > MAX_AMOUNT ->
+                errors += FieldError(FIELD_COMMISSION, "La comisión es demasiado grande")
         }
 
         return errors

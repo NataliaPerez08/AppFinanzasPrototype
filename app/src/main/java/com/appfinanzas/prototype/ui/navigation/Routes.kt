@@ -9,13 +9,21 @@ object Routes {
 
     const val INVESTMENT_DETAIL = "investmentDetail/{investmentId}"
     const val ADD_INVESTMENT = "addInvestment"
+    const val EDIT_INVESTMENT = "editInvestment/{investmentId}"
     const val ADD_TRANSACTION = "addTransaction/{investmentId}"
+    const val EDIT_TRANSACTION = "editTransaction/{investmentId}/{transactionId}"
     const val INSTITUTIONS = "institutions"
     const val SETTINGS = "settings"
 
     const val ARG_INVESTMENT_ID = "investmentId"
+    const val ARG_TRANSACTION_ID = "transactionId"
 
     fun investmentDetail(investmentId: Long): String = "investmentDetail/$investmentId"
 
+    fun editInvestment(investmentId: Long): String = "editInvestment/$investmentId"
+
     fun addTransaction(investmentId: Long): String = "addTransaction/$investmentId"
+
+    fun editTransaction(investmentId: Long, transactionId: Long): String =
+        "editTransaction/$investmentId/$transactionId"
 }

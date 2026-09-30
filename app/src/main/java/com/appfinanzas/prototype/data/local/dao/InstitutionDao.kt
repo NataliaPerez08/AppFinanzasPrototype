@@ -14,6 +14,9 @@ interface InstitutionDao {
     @Query("SELECT * FROM institutions WHERE id = :id")
     suspend fun getById(id: Long): InstitutionEntity?
 
+    @Query("SELECT * FROM institutions")
+    suspend fun getAll(): List<InstitutionEntity>
+
     @Query("SELECT COUNT(*) FROM institutions")
     suspend fun getCount(): Long
 

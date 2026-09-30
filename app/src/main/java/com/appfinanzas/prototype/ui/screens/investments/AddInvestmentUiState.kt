@@ -7,6 +7,7 @@ import com.appfinanzas.prototype.ui.format.DateFormatter
 import java.time.LocalDate
 
 data class AddInvestmentUiState(
+    val isEditing: Boolean = false,
     val type: InvestmentType? = null,
     val institutionId: Long? = null,
     val institutions: List<Institution> = emptyList(),

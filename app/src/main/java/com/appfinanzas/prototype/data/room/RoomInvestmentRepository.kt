@@ -1,11 +1,13 @@
 package com.appfinanzas.prototype.data.room
 
+import androidx.room.withTransaction
 import com.appfinanzas.prototype.data.local.AppDatabase
 import com.appfinanzas.prototype.data.local.entity.PreferencesEntity
 import com.appfinanzas.prototype.data.mapper.InstitutionMapper
 import com.appfinanzas.prototype.data.mapper.InvestmentMapper
 import com.appfinanzas.prototype.data.mapper.TransactionMapper
 import com.appfinanzas.prototype.data.mapper.toFloatList
+import com.appfinanzas.prototype.domain.ledger.LedgerCalculator
 import com.appfinanzas.prototype.domain.model.AppSettings
 import com.appfinanzas.prototype.domain.model.Currency
 import com.appfinanzas.prototype.domain.model.Institution
@@ -14,10 +16,11 @@ import com.appfinanzas.prototype.domain.model.Transaction
 import com.appfinanzas.prototype.domain.repository.InvestmentRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 class RoomInvestmentRepository(
-    database: AppDatabase,
+    private val database: AppDatabase,
 ) : InvestmentRepository {
 
     private val institutionDao = database.institutionDao()
@@ -61,15 +64,109 @@ class RoomInvestmentRepository(
     override fun observeInstitutions(): Flow<List<Institution>> =
         institutionDao.observeAll().map { entities -> entities.map { InstitutionMapper.toDomain(it) } }
 
+    override suspend fun getInvestment(investmentId: Long): Investment? {
+        val entity = investmentDao.getById(investmentId) ?: return null
+        val institution = institutionDao.getById(entity.institutionId)
+            ?.let { InstitutionMapper.toDomain(it) }
+            ?: Institution(id = entity.institutionId, name = "—", kind = "")
+        return InvestmentMapper.toDomain(entity, institution)
+    }
+
+    override suspend fun getAllInvestments(): List<Investment> {
+        val institutions = institutionDao.getAll().associateBy { it.id }
+        return investmentDao.getAll().map { entity ->
+            val institution = institutions[entity.institutionId]?.let { InstitutionMapper.toDomain(it) }
+                ?: Institution(id = entity.institutionId, name = "—", kind = "")
+            InvestmentMapper.toDomain(entity, institution)
+        }
+    }
+
+    override suspend fun getTransaction(transactionId: Long): Transaction? =
+        transactionDao.getById(transactionId)?.let { TransactionMapper.toDomain(it) }
+
+    override suspend fun getTransactions(investmentId: Long): List<Transaction> =
+        transactionDao.getByInvestment(investmentId).map { TransactionMapper.toDomain(it) }
+
     override suspend fun saveInvestment(investment: Investment): Long =
         investmentDao.insert(InvestmentMapper.toEntity(investment))
+
+    override suspend fun saveInvestmentWithOpeningTransaction(
+        investment: Investment,
+        openingTransaction: Transaction,
+    ): Long = database.withTransaction {
+        val id = investmentDao.insert(InvestmentMapper.toEntity(investment))
+        transactionDao.insert(TransactionMapper.toEntity(openingTransaction.copy(investmentId = id)))
+        id
+    }
 
     override suspend fun updateInvestment(investment: Investment) {
         investmentDao.update(InvestmentMapper.toEntity(investment))
     }
 
+    override suspend fun deleteInvestment(investmentId: Long) {
+        val entity = investmentDao.getById(investmentId) ?: return
+        investmentDao.delete(entity)
+    }
+
     override suspend fun saveTransaction(transaction: Transaction): Long =
         transactionDao.insert(TransactionMapper.toEntity(transaction))
+
+    override suspend fun saveTransactionWithInvestment(
+        transaction: Transaction,
+        investment: Investment,
+    ): Long = database.withTransaction {
+        val id = transactionDao.insert(TransactionMapper.toEntity(transaction))
+        investmentDao.update(InvestmentMapper.toEntity(investment))
+        id
+    }
+
+    override suspend fun updateTransactionWithInvestment(
+        transaction: Transaction,
+        investment: Investment,
+    ) {
+        database.withTransaction {
+            transactionDao.update(TransactionMapper.toEntity(transaction))
+            investmentDao.update(InvestmentMapper.toEntity(investment))
+        }
+    }
+
+    override suspend fun deleteTransactionWithInvestment(
+        transactionId: Long,
+        investment: Investment,
+    ) {
+        database.withTransaction {
+            val entity = transactionDao.getById(transactionId) ?: return@withTransaction
+            transactionDao.delete(entity)
+            investmentDao.update(InvestmentMapper.toEntity(investment))
+        }
+    }
+
+    suspend fun recomputeAllLedgers() {
+        database.withTransaction {
+            val institutions = institutionDao.getAll().associateBy { it.id }
+            investmentDao.getAll().forEach { entity ->
+                val institution = institutions[entity.institutionId]?.let { InstitutionMapper.toDomain(it) }
+                    ?: Institution(id = entity.institutionId, name = "—", kind = "")
+                val investment = InvestmentMapper.toDomain(entity, institution)
+                val transactions = transactionDao.getByInvestment(entity.id).map { TransactionMapper.toDomain(it) }
+                val state = LedgerCalculator.recompute(investment.currentPrice, transactions)
+                investmentDao.update(
+                    InvestmentMapper.toEntity(
+                        investment.copy(
+                            quantity = state.quantity,
+                            averageCost = state.averageCost,
+                            cashBalance = state.cashBalance,
+                            investedCapital = state.investedCapital,
+                            realizedProfit = state.realizedProfit,
+                            currentPrice = state.currentPrice,
+                            currentValue = state.currentValue,
+                            returnPercentage = state.returnPercentage,
+                        ),
+                    ),
+                )
+            }
+        }
+    }
 
     override fun observeSettings(): Flow<AppSettings> =
         combine(
@@ -116,4 +213,11 @@ class RoomInvestmentRepository(
 
     override suspend fun addInstitution(institution: Institution): Long =
         institutionDao.insert(InstitutionMapper.toEntity(institution))
+
+    override suspend fun repairLedgerIfNeeded() {
+        val repaired = preferencesDao.observe(AppDatabase.LEDGER_REPAIRED_KEY).first()
+        if (repaired?.value == "true") return
+        recomputeAllLedgers()
+        preferencesDao.upsert(PreferencesEntity(AppDatabase.LEDGER_REPAIRED_KEY, "true"))
+    }
 }

@@ -47,6 +47,9 @@ object InvestmentMapper {
             dailyValueChange = entity.dailyValueChange,
             returnPercentage = entity.returnPercentage,
             history = entity.historyCsv.toFloatList(),
+            cashBalance = entity.cashBalance,
+            averageCost = entity.averageCost,
+            realizedProfit = entity.realizedProfit,
         )
 
     fun toEntity(domain: Investment): InvestmentEntity =
@@ -67,6 +70,9 @@ object InvestmentMapper {
             dailyValueChange = domain.dailyValueChange,
             returnPercentage = domain.returnPercentage,
             historyCsv = domain.history.toCsv(),
+            cashBalance = domain.cashBalance,
+            averageCost = domain.averageCost,
+            realizedProfit = domain.realizedProfit,
         )
 }
 

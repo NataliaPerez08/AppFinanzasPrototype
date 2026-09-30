@@ -5,6 +5,7 @@ import com.appfinanzas.prototype.data.sampleInvestment
 import com.appfinanzas.prototype.domain.model.Currency
 import com.appfinanzas.prototype.domain.model.Transaction
 import com.appfinanzas.prototype.domain.model.TransactionType
+import com.appfinanzas.prototype.domain.usecase.DeleteInvestmentUseCase
 import com.appfinanzas.prototype.domain.usecase.GetInvestmentDetail
 import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
@@ -57,7 +58,7 @@ class InvestmentDetailViewModelTest {
                 ),
             ),
         )
-        val viewModel = InvestmentDetailViewModel(5L, GetInvestmentDetail(repo))
+        val viewModel = InvestmentDetailViewModel(5L, GetInvestmentDetail(repo), DeleteInvestmentUseCase(repo))
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
@@ -76,6 +77,7 @@ class InvestmentDetailViewModelTest {
         val viewModel = InvestmentDetailViewModel(
             99L,
             GetInvestmentDetail(TestInvestmentRepository(investments = listOf(sampleInvestment(id = 1)))),
+            DeleteInvestmentUseCase(TestInvestmentRepository()),
         )
         advanceUntilIdle()
 
@@ -89,6 +91,7 @@ class InvestmentDetailViewModelTest {
         val viewModel = InvestmentDetailViewModel(
             1L,
             GetInvestmentDetail(TestInvestmentRepository(error = RuntimeException("boom"))),
+            DeleteInvestmentUseCase(TestInvestmentRepository()),
         )
         advanceUntilIdle()
 

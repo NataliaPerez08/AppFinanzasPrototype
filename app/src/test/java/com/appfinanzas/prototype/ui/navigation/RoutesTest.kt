@@ -18,6 +18,15 @@ class RoutesTest {
     fun `route patterns retain id arguments`() {
         assertEquals("investmentDetail/{investmentId}", Routes.INVESTMENT_DETAIL)
         assertEquals("addTransaction/{investmentId}", Routes.ADD_TRANSACTION)
+        assertEquals("editInvestment/{investmentId}", Routes.EDIT_INVESTMENT)
+        assertEquals("editTransaction/{investmentId}/{transactionId}", Routes.EDIT_TRANSACTION)
         assertEquals("investmentId", Routes.ARG_INVESTMENT_ID)
+        assertEquals("transactionId", Routes.ARG_TRANSACTION_ID)
+    }
+
+    @Test
+    fun `builds edit routes with ids`() {
+        assertEquals("editInvestment/42", Routes.editInvestment(42L))
+        assertEquals("editTransaction/7/9", Routes.editTransaction(7L, 9L))
     }
 }

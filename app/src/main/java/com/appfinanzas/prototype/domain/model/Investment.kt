@@ -17,4 +17,7 @@ data class Investment(
     val dailyValueChange: Double,
     val returnPercentage: Double,
     val history: List<Float>,
+    val cashBalance: Double = 0.0,
+    val averageCost: Double = 0.0,
+    val realizedProfit: Double = 0.0,
 )

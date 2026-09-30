@@ -29,6 +29,7 @@ class AddInvestmentUseCase(
             ?: return AddInvestmentResult.BusinessError("Institución no válida")
         val date = InvestmentFormValidator.parseDate(form.dateText) ?: return AddInvestmentResult.BusinessError("Fecha inválida")
 
+        val currency = form.currency!!
         val investment = Investment(
             id = 0,
             name = form.name.trim().uppercase(),
@@ -36,31 +37,32 @@ class AddInvestmentUseCase(
             symbol = form.symbol.trim().uppercase(),
             type = form.type!!,
             institution = institution,
-            currency = form.currency!!,
-            currentPrice = initialValue,
+            currency = currency,
+            currentPrice = 0.0,
             priceChange = 0.0,
             dailyChangePercentage = 0.0,
-            quantity = 1.0,
+            quantity = 0.0,
             investedCapital = initialValue,
             currentValue = initialValue,
             dailyValueChange = 0.0,
             returnPercentage = 0.0,
             history = listOf(.5f, .5f),
+            cashBalance = initialValue,
+            averageCost = 0.0,
+            realizedProfit = 0.0,
         )
-        val id = repository.saveInvestment(investment)
-        repository.saveTransaction(
-            Transaction(
-                id = 0,
-                investmentId = id,
-                type = TransactionType.DEPOSITO,
-                date = date,
-                quantity = 0.0,
-                price = 0.0,
-                commission = 0.0,
-                total = initialValue,
-                currency = form.currency!!,
-            ),
+        val openingDeposit = Transaction(
+            id = 0,
+            investmentId = 0,
+            type = TransactionType.DEPOSITO,
+            date = date,
+            quantity = 0.0,
+            price = 0.0,
+            commission = 0.0,
+            total = initialValue,
+            currency = currency,
         )
+        val id = repository.saveInvestmentWithOpeningTransaction(investment, openingDeposit)
         return AddInvestmentResult.Success(id)
     }
 }

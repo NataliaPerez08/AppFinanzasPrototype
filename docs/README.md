@@ -56,6 +56,10 @@ integración y E2E de UI. Detalle en `HARDENING_STATUS.md`.
 
 ## Documentación
 
-- `ROADMAP_UI_INTEGRATION.md` — fases de integración UI.
+Todos los documentos viven en `docs/`.
+
+- `AGENTS.md` — arquitectura, sistema visual y convenciones del proyecto.
+- `ROADMAP_UI_INTEGRATION.md` — fases 1–5 de integración UI.
 - `HARDENING_PLAN.md` — plan de hardening.
-- `HARDENING_STATUS.md` — estado verificado de cumplimiento.
+- `HARDENING_STATUS.md` — estado de cumplimiento, pendientes y huecos de cobertura.
+- `FASE_6_PRODUCTION_RELEASE_GOOGLE_PLAY.md` — plan de release 1.0 y Google Play.

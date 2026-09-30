@@ -90,4 +90,21 @@ class TransactionFormValidatorTest {
         val errors = TransactionFormValidator.validate(validCompra().copy(quantityText = "99999999999"))
         assertTrue(errors.any { it.field == TransactionFormValidator.FIELD_QUANTITY })
     }
+
+    @Test
+    fun `retiro requires a positive amount`() {
+        fun retiro(amount: String) = TransactionForm(
+            type = TransactionType.RETIRO,
+            dateText = "21/09/2026",
+            quantityText = amount,
+            priceText = "",
+            commissionText = "",
+            currency = Currency.MXN,
+        )
+
+        assertTrue(TransactionFormValidator.validate(retiro("")).any { it.field == TransactionFormValidator.FIELD_QUANTITY })
+        assertTrue(TransactionFormValidator.validate(retiro("0")).any { it.field == TransactionFormValidator.FIELD_QUANTITY })
+        assertTrue(TransactionFormValidator.validate(retiro("-100")).any { it.field == TransactionFormValidator.FIELD_QUANTITY })
+        assertTrue(TransactionFormValidator.validate(retiro("100")).isEmpty())
+    }
 }

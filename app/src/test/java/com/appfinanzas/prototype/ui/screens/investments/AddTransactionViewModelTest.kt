@@ -40,10 +40,10 @@ class AddTransactionViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel(repo: TestInvestmentRepository) =
+    private fun viewModel(repo: TestInvestmentRepository, transactionId: Long? = null) =
         AddTransactionViewModel(
             investmentId = 1L,
-            transactionId = null,
+            transactionId = transactionId,
             addTransactionUseCase = AddTransactionUseCase(repo),
             updateTransactionUseCase = UpdateTransactionUseCase(repo),
             deleteTransactionUseCase = DeleteTransactionUseCase(repo),
@@ -59,6 +59,18 @@ class AddTransactionViewModelTest {
         price = 0.0,
         commission = 0.0,
         total = amount,
+        currency = Currency.MXN,
+    )
+
+    private fun buy(quantity: Double, price: Double, id: Long = 2L) = Transaction(
+        id = id,
+        investmentId = 1L,
+        type = TransactionType.COMPRA,
+        date = LocalDate.of(2026, 9, 22),
+        quantity = quantity,
+        price = price,
+        commission = 0.0,
+        total = quantity * price,
         currency = Currency.MXN,
     )
 
@@ -155,5 +167,90 @@ class AddTransactionViewModelTest {
         advanceUntilIdle()
 
         assertNotNull(viewModel.uiState.value.formError)
+    }
+
+    @Test
+    fun `edit mode loads existing transaction`() = runTest {
+        val repo = TestInvestmentRepository(
+            investments = listOf(sampleInvestment(id = 1)),
+            transactions = mapOf(1L to listOf(deposit(10_000.0), buy(10.0, 100.0))),
+        )
+        val viewModel = viewModel(repo, transactionId = 2L)
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertTrue(state.isEditing)
+        assertEquals(TransactionType.COMPRA, state.type)
+        assertEquals("10", state.quantityText)
+        assertEquals("100", state.priceText)
+    }
+
+    @Test
+    fun `edit mode updates transaction and emits event`() = runTest {
+        val repo = TestInvestmentRepository(
+            investments = listOf(sampleInvestment(id = 1)),
+            transactions = mapOf(1L to listOf(deposit(10_000.0), buy(10.0, 100.0))),
+        )
+        val viewModel = viewModel(repo, transactionId = 2L)
+        advanceUntilIdle()
+
+        viewModel.onQuantityChange("5")
+        viewModel.submit()
+        advanceUntilIdle()
+
+        assertEquals(1L, viewModel.savedEvents.first())
+        val updated = repo.observeInvestment(1).first()!!
+        assertEquals(5.0, updated.quantity, 0.001)
+        assertEquals(9_500.0, updated.cashBalance, 0.001)
+    }
+
+    @Test
+    fun `delete mode removes transaction and emits event`() = runTest {
+        val repo = TestInvestmentRepository(
+            investments = listOf(sampleInvestment(id = 1)),
+            transactions = mapOf(1L to listOf(deposit(10_000.0), buy(10.0, 100.0))),
+        )
+        val viewModel = viewModel(repo, transactionId = 2L)
+        advanceUntilIdle()
+
+        viewModel.delete()
+        advanceUntilIdle()
+
+        assertEquals(1L, viewModel.savedEvents.first())
+        assertTrue(repo.getTransactions(1).none { it.id == 2L })
+        assertEquals(0.0, repo.observeInvestment(1).first()!!.quantity, 0.001)
+    }
+
+    @Test
+    fun `deleting the funding deposit surfaces a business error`() = runTest {
+        val repo = TestInvestmentRepository(
+            investments = listOf(sampleInvestment(id = 1)),
+            transactions = mapOf(1L to listOf(deposit(10_000.0), buy(1.0, 50.0))),
+        )
+        val viewModel = viewModel(repo, transactionId = 1L)
+        advanceUntilIdle()
+
+        viewModel.delete()
+        advanceUntilIdle()
+
+        assertNotNull(viewModel.uiState.value.formError)
+        assertTrue(repo.getTransactions(1).any { it.id == 1L })
+    }
+
+    @Test
+    fun `edit mode surfaces a business error when ledger breaks`() = runTest {
+        val repo = TestInvestmentRepository(
+            investments = listOf(sampleInvestment(id = 1)),
+            transactions = mapOf(1L to listOf(deposit(100.0), buy(1.0, 50.0))),
+        )
+        val viewModel = viewModel(repo, transactionId = 2L)
+        advanceUntilIdle()
+
+        viewModel.onQuantityChange("10")
+        viewModel.submit()
+        advanceUntilIdle()
+
+        assertNotNull(viewModel.uiState.value.formError)
+        assertEquals(1.0, repo.getTransactions(1).first { it.id == 2L }.quantity, 0.001)
     }
 }

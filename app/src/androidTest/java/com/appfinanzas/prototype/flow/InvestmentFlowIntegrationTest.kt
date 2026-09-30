@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -126,5 +127,66 @@ class InvestmentFlowIntegrationTest {
         assertEquals(details.sumOf { it.currentValue }, summary.portfolioValue, 0.001)
         assertEquals(details.sumOf { it.investedCapital }, summary.investedCapital, 0.001)
         assertEquals(details.sumOf { it.currentValue - it.investedCapital }, summary.profit, 0.001)
+    }
+
+    @Test
+    fun partialSale_reducesPositionTo60() = runTest {
+        val institutionId = harness.seedInstitution()
+        val id = harness.seedInvestment(institutionId)
+        val useCase = AddTransactionUseCase(harness.repository)
+
+        assertTrue(useCase.execute(id, FlowTestHarness.transactionForm(TransactionType.COMPRA, "100", "100")) is AddTransactionResult.Success)
+        assertTrue(useCase.execute(id, FlowTestHarness.transactionForm(TransactionType.VENTA, "40", "120")) is AddTransactionResult.Success)
+
+        val investment = harness.repository.getInvestment(id)!!
+        assertEquals(60.0, investment.quantity, 0.001)
+        assertEquals(4_800.0, investment.cashBalance, 0.001)
+        assertEquals(800.0, investment.realizedProfit, 0.001)
+    }
+
+    @Test
+    fun fullSale_closesPositionWithoutNegativeQuantity() = runTest {
+        val institutionId = harness.seedInstitution()
+        val id = harness.seedInvestment(institutionId)
+        val useCase = AddTransactionUseCase(harness.repository)
+
+        assertTrue(useCase.execute(id, FlowTestHarness.transactionForm(TransactionType.COMPRA, "100", "100")) is AddTransactionResult.Success)
+        assertTrue(useCase.execute(id, FlowTestHarness.transactionForm(TransactionType.VENTA, "100", "100")) is AddTransactionResult.Success)
+
+        val investment = harness.repository.getInvestment(id)!!
+        assertEquals(0.0, investment.quantity, 0.001)
+        assertEquals(10_000.0, investment.cashBalance, 0.001)
+        assertEquals(0.0, investment.realizedProfit, 0.001)
+        assertFalse(investment.quantity < 0.0)
+    }
+
+    @Test
+    fun invalidSale_isRejectedWithoutChangingRoom() = runTest {
+        val institutionId = harness.seedInstitution()
+        val id = harness.seedInvestment(institutionId)
+        val useCase = AddTransactionUseCase(harness.repository)
+
+        assertTrue(useCase.execute(id, FlowTestHarness.transactionForm(TransactionType.COMPRA, "100", "100")) is AddTransactionResult.Success)
+        val transactionsBefore = harness.repository.getTransactions(id)
+
+        val result = useCase.execute(id, FlowTestHarness.transactionForm(TransactionType.VENTA, "150", "120"))
+        assertTrue(result is AddTransactionResult.BusinessError)
+
+        val investment = harness.repository.getInvestment(id)!!
+        assertEquals(100.0, investment.quantity, 0.001)
+        assertEquals(transactionsBefore.size, harness.repository.getTransactions(id).size)
+    }
+
+    @Test
+    fun totalWithdrawal_emptiesCash() = runTest {
+        val institutionId = harness.seedInstitution()
+        val id = harness.seedInvestment(institutionId)
+        val useCase = AddTransactionUseCase(harness.repository)
+
+        assertTrue(useCase.execute(id, FlowTestHarness.transactionForm(TransactionType.RETIRO, "10000")) is AddTransactionResult.Success)
+
+        val investment = harness.repository.getInvestment(id)!!
+        assertEquals(0.0, investment.cashBalance, 0.001)
+        assertEquals(0.0, investment.investedCapital, 0.001)
     }
 }

@@ -191,4 +191,46 @@ class AddTransactionUseCaseTest {
 
         assertTrue(result is AddTransactionResult.Error)
     }
+
+    @Test
+    fun `retiro total empties cash and capital`() = runTest {
+        val repo = repository(deposit(1_000.0))
+        val result = AddTransactionUseCase(repo).execute(
+            1,
+            form(TransactionType.RETIRO, quantity = "1000", price = "", commission = ""),
+        )
+
+        assertTrue(result is AddTransactionResult.Success)
+        val updated = repo.observeInvestment(1).first()!!
+        assertEquals(0.0, updated.cashBalance, 0.001)
+        assertEquals(0.0, updated.investedCapital, 0.001)
+    }
+
+    @Test
+    fun `retiro of zero is rejected before persisting`() = runTest {
+        val repo = repository(deposit(1_000.0))
+        val before = repo.observeInvestment(1).first()!!
+        val result = AddTransactionUseCase(repo).execute(
+            1,
+            form(TransactionType.RETIRO, quantity = "0", price = "", commission = ""),
+        )
+
+        assertTrue(result is AddTransactionResult.Error)
+        assertEquals(before.cashBalance, repo.observeInvestment(1).first()!!.cashBalance, 0.001)
+        assertEquals(1, repo.getTransactions(1).size)
+    }
+
+    @Test
+    fun `negative retiro is rejected before persisting`() = runTest {
+        val repo = repository(deposit(1_000.0))
+        val before = repo.observeInvestment(1).first()!!
+        val result = AddTransactionUseCase(repo).execute(
+            1,
+            form(TransactionType.RETIRO, quantity = "-50", price = "", commission = ""),
+        )
+
+        assertTrue(result is AddTransactionResult.Error)
+        assertEquals(before.cashBalance, repo.observeInvestment(1).first()!!.cashBalance, 0.001)
+        assertEquals(1, repo.getTransactions(1).size)
+    }
 }

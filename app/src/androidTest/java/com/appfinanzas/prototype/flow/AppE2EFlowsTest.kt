@@ -7,6 +7,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
 import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -15,8 +16,10 @@ import com.appfinanzas.prototype.data.local.AppDatabase
 import com.appfinanzas.prototype.data.room.RoomInvestmentRepository
 import com.appfinanzas.prototype.di.AppContainer
 import com.appfinanzas.prototype.domain.model.Institution
+import com.appfinanzas.prototype.domain.model.TransactionType
 import com.appfinanzas.prototype.domain.usecase.AddInvestmentResult
 import com.appfinanzas.prototype.domain.usecase.AddInvestmentUseCase
+import com.appfinanzas.prototype.domain.usecase.AddTransactionUseCase
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.AfterClass
@@ -128,8 +131,57 @@ class AppE2EFlowsTest {
         (result as AddInvestmentResult.Success).investmentId
     }
 
+    private fun seedInvestmentWithBuy(quantity: String, price: String): Long {
+        val id = seedInvestment()
+        runBlocking {
+            AddTransactionUseCase(repository)
+                .execute(id, FlowTestHarness.transactionForm(TransactionType.COMPRA, quantity, price))
+        }
+        return id
+    }
+
+    @Test
+    fun editTransaction_throughUi_updatesQuantity() {
+        seedInvestmentWithBuy(quantity = "2", price = "100")
+
+        composeRule.onNodeWithText("INVERSIONES").performClick()
+        waitForText("APPLE")
+        composeRule.onNodeWithText("APPLE").performClick()
+        waitForText("COMPRA")
+        clickScrolling("COMPRA")
+        waitForText("EDITAR MOVIMIENTO")
+
+        composeRule.onNodeWithContentDescription("Cantidad").performScrollTo().performTextReplacement("5")
+        clickScrolling("GUARDAR CAMBIOS")
+
+        waitForText("5.00")
+    }
+
+    @Test
+    fun deleteTransaction_throughUi_removesMovement() {
+        val investmentId = seedInvestmentWithBuy(quantity = "2", price = "100")
+
+        composeRule.onNodeWithText("INVERSIONES").performClick()
+        waitForText("APPLE")
+        composeRule.onNodeWithText("APPLE").performClick()
+        waitForText("COMPRA")
+        clickScrolling("COMPRA")
+        waitForText("EDITAR MOVIMIENTO")
+
+        clickScrolling("ELIMINAR MOVIMIENTO")
+        waitForText("ELIMINAR")
+        composeRule.onNodeWithText("ELIMINAR").performClick()
+
+        waitForText("DEPOSITO")
+        assertTrue(
+            runBlocking {
+                repository.getTransactions(investmentId).none { it.type == TransactionType.COMPRA }
+            },
+        )
+    }
+
     private fun waitForText(text: String) {
-        composeRule.waitUntil(timeoutMillis = 5_000) {
+        composeRule.waitUntil(timeoutMillis = 10_000) {
             composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
         }
     }

@@ -172,4 +172,59 @@ class LedgerCalculatorTest {
         )
         assertFalse(errors.isNotEmpty())
     }
+
+    @Test
+    fun `single cent deposit keeps exact value`() {
+        val state = LedgerCalculator.recompute(0.0, listOf(deposit(0.01)))
+
+        assertEquals(0.01, state.cashBalance, 0.0001)
+        assertEquals(0.01, state.investedCapital, 0.0001)
+    }
+
+    @Test
+    fun `many small deposits do not accumulate precision error`() {
+        val transactions = (1L..1_000L).map { deposit(0.01, id = it) }
+        val state = LedgerCalculator.recompute(0.0, transactions)
+
+        assertEquals(10.0, state.cashBalance, 0.0001)
+        assertEquals(10.0, state.investedCapital, 0.0001)
+    }
+
+    @Test
+    fun `large deposit keeps precision`() {
+        val state = LedgerCalculator.recompute(0.0, listOf(deposit(999_999_999.99)))
+
+        assertEquals(999_999_999.99, state.cashBalance, 0.001)
+    }
+
+    @Test
+    fun `fractional purchase cost rounds to cents`() {
+        val state = LedgerCalculator.recompute(0.0, listOf(deposit(200.0), buy(3.0, 33.333, id = 2)))
+
+        assertEquals(100.0, state.cashBalance, 0.0001)
+        assertEquals(3.0, state.quantity, 0.0001)
+    }
+
+    @Test
+    fun `total withdrawal empties cash and capital`() {
+        val state = LedgerCalculator.recompute(
+            0.0,
+            listOf(deposit(1_000.0), tx(id = 2, type = TransactionType.RETIRO, total = 1_000.0)),
+        )
+
+        assertEquals(0.0, state.cashBalance, 0.0001)
+        assertEquals(0.0, state.investedCapital, 0.0001)
+        assertEquals(0.0, state.currentValue, 0.0001)
+    }
+
+    @Test
+    fun `negative return percentage is computed`() {
+        val state = LedgerCalculator.recompute(
+            0.0,
+            listOf(deposit(1_000.0), buy(10.0, 100.0, id = 2), sell(10.0, 80.0, id = 3)),
+        )
+
+        assertEquals(-20.0, state.returnPercentage, 0.0001)
+        assertEquals(-200.0, state.realizedProfit, 0.0001)
+    }
 }

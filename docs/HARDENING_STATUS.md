@@ -7,9 +7,9 @@ integración del roadmap (`ROADMAP_UI_INTEGRATION.md`), verificado con código y
 
 | Métrica | Valor |
 |---|---|
-| Tests unitarios (JVM) | 144 / 144 |
-| Tests instrumentados (Android) | 18 / 18 |
-| Flujos E2E de aplicación | 3 (crear inversión, registrar compra, eliminar inversión) |
+| Tests unitarios (JVM) | 159 / 159 |
+| Tests instrumentados (Android) | 24 / 24 |
+| Flujos E2E de aplicación | 5 (crear inversión, registrar compra, eliminar inversión, editar movimiento, eliminar movimiento) |
 | Migración Room 1 → 2 | Validada |
 | `assembleDebug` | OK |
 | `lintDebug` | OK |
@@ -20,13 +20,21 @@ integración del roadmap (`ROADMAP_UI_INTEGRATION.md`), verificado con código y
 
 ## Definition of Done — Hardening
 
-- [x] **Flujos P0 funcionales.** Ledger consistente, venta, retiro, editar/eliminar
-      inversión y movimientos, atomicidad, precisión y validaciones.
+> Nota: "P0" aquí significa que el flujo existe y funciona en el camino feliz; la
+> cobertura de casos límite se detalla en «Pendientes y huecos de cobertura».
+
+- [x] **Flujos P0 implementados (camino feliz).** Ledger, venta, retiro,
+      editar/eliminar inversión y movimientos, atomicidad y validaciones.
       Evidencia: `AddTransactionUseCaseTest`, `UpdateTransactionUseCaseTest`,
       `DeleteTransactionUseCaseTest`, `UpdateInvestmentUseCaseTest`,
       `DeleteInvestmentUseCaseTest`, `LedgerCalculatorTest`, `RoomInvestmentRepositoryTest`,
       `InvestmentFlowIntegrationTest`, `AppE2EFlowsTest`.
-- [x] **Flujos existentes sin regresiones.** 144 unit + 18 instrumentados en verde.
+- [x] **Flujos P0 con cobertura completa.** Precisión de centavos y acumulación
+      (`LedgerCalculatorTest`, `AddTransactionUseCaseTest`), retiros total/cero/negativo,
+      ventas parcial/total/inválida en instrumentado (`InvestmentFlowIntegrationTest`) y
+      edición/borrado de movimientos desde UI (`AddTransactionViewModelTest`,
+      `AppE2EFlowsTest`).
+- [x] **Flujos existentes sin regresiones.** 159 unit + 24 instrumentados en verde.
 - [x] **Operaciones inválidas rechazadas antes de persistir.**
       `LedgerCalculator.validate`, `TransactionFormValidator`, `InvestmentFormValidator`.
 - [x] **Sin posiciones negativas.** Invariantes de `LedgerCalculator` + `LedgerCalculatorTest`.
@@ -36,8 +44,9 @@ integración del roadmap (`ROADMAP_UI_INTEGRATION.md`), verificado con código y
       `InvestmentFlowIntegrationTest.dashboardAndDetailMetricsMatch`.
 - [x] **Cambios Room reflejados por Flow.**
       `InvestmentFlowIntegrationTest.roomChangesPropagateThroughFlows`.
-- [x] **Datos persistentes después de cerrar la app.**
-      `PersistenceFlowTest.dataSurvivesDatabaseReopen` (cierra y reabre la BD).
+- [ ] **Datos persistentes tras cerrar/reabrir la app (parcial).**
+      `PersistenceFlowTest.dataSurvivesDatabaseReopen` cierra y reabre la BD;
+      falta probar terminación y apertura real de la app.
 - [x] **Fórmulas financieras probadas.** `LedgerCalculatorTest`, `ProjectionCalculatorTest`.
 - [x] **Tests existentes y nuevos en verde.**
 - [x] **`test`, build y lint ejecutados.**
@@ -90,11 +99,13 @@ integración del roadmap (`ROADMAP_UI_INTEGRATION.md`), verificado con código y
 ### Instrumentados (Android)
 - `RoomInvestmentRepositoryTest`: atomicidad, cascade, update/delete.
 - `MigrationTest`: migración 1 → 2.
-- `InvestmentFlowIntegrationTest`: creación, compra/venta/retiro, borrado con
-  cascade, reactividad y consistencia dashboard/detalle.
+- `InvestmentFlowIntegrationTest`: creación, compra/venta/retiro, venta
+  parcial/total/inválida, borrado con cascade, reactividad y consistencia
+  dashboard/detalle.
 - `PersistenceFlowTest`: persistencia tras reapertura.
-- `AppE2EFlowsTest`: flujos E2E de UI vía `MainActivity` (crear, registrar compra,
-  eliminar inversión) con `AppContainer` inyectable.
+- `AppE2EFlowsTest`: flujos E2E de UI vía `MainActivity` (crear inversión, registrar
+  compra, editar movimiento, eliminar movimiento, eliminar inversión) con
+  `AppContainer` inyectable.
 
 ### Seam de test
 `AppContainer.setRepositoryForTest` / `resetForTest` permiten montar la app real
@@ -117,22 +128,21 @@ Requiere Espresso 3.7.0 (corrige `InputManager.getInstance` eliminado en API 34+
 ## Pendientes y huecos de cobertura
 
 Cobertura revisada por inspección estática de `app/src/test` y `app/src/androidTest`
-contra `QA_FLOW_VALIDATION.md`. Los huecos que tocan integridad financiera se elevan a P0.
+durante la validación QA de flujos. Los huecos que tocan integridad financiera se elevan a P0.
 
-### P0 — integridad financiera
+### P0 — integridad financiera (cerrado)
 
-- [ ] **Precisión monetaria.** El dominio usa `Double` para dinero; solo se prueba
-      el redondeo a 2 decimales (`LedgerCalculatorTest.rounds monetary values to
-      two decimals`). Faltan `$0.01`, centavos y acumulación de muchas transacciones
-      sin error visible. No hay aserciones con `BigDecimal`.
-- [ ] **Retiros.** Faltan retiro total, cero y negativo; solo están cubiertos parcial
-      (`LedgerCalculatorTest.withdrawal reduces cash and capital`) y superior al saldo
-      (`validate rejects withdrawal above cash`, `AddTransactionUseCaseTest.retiro…`).
-- [ ] **Ventas en instrumentado.** No hay venta parcial 100→60, venta total →0 ni venta
-      inválida (más que la posición) a nivel Android. `InvestmentFlowIntegrationTest`
-      solo vende 2→1; el único caso inválido instrumentado es un retiro.
-- [ ] **Editar/eliminar por tipo.** Depósito/compra/venta/retiro están cubiertos en use
-      cases/DAO, pero no a través de UI ni por cada tipo de movimiento.
+- [x] **Precisión monetaria.** `LedgerCalculatorTest` cubre `$0.01`, 1 000 depósitos
+      de un centavo sin error acumulado, montos grandes, compra fraccionaria y
+      rendimiento negativo. (Se mantiene `Double` con redondeo a 2 decimales.)
+- [x] **Retiros.** Total, cero y negativo cubiertos en `LedgerCalculatorTest`,
+      `TransactionFormValidatorTest` y `AddTransactionUseCaseTest`; el retiro superior
+      al saldo se rechaza antes de persistir.
+- [x] **Ventas en instrumentado.** `InvestmentFlowIntegrationTest` cubre venta parcial
+      100→60, venta total 100→0 y venta inválida (150 > 100) rechazada sin tocar Room.
+- [x] **Editar/eliminar por tipo.** `AddTransactionViewModelTest` y `AppE2EFlowsTest`
+      cubren edición y borrado de movimientos (incluido el rechazo al borrar el
+      depósito de fondeo) desde ViewModel y UI.
 
 ### P1 — flujos y estados
 
@@ -141,9 +151,11 @@ contra `QA_FLOW_VALIDATION.md`. Los huecos que tocan integridad financiera se el
 - [ ] Back/cancelación en formularios desde UI instrumentada.
 - [ ] Recreación de Activity (dashboard, detalle, formularios).
 - [ ] Doble-Save / recomposición / re-entrada: falta verificar que no se dupliquen registros.
-- [ ] Propagación reactiva completa `DB → Flow → ViewModel → UI`: solo probada con una
-      compra (`roomChangesPropagateThroughFlows`, `registerBuy_updatesDetailQuantity`);
-      sin edición ni borrado.
+- [ ] Propagación reactiva completa `DB → Flow → ViewModel → UI`: la emisión reactiva
+      intermedia solo se asserta para una compra (`roomChangesPropagateThroughFlows`);
+      edición y borrado ya tienen E2E de UI (`editTransaction_throughUi_updatesQuantity`,
+      `deleteTransaction_throughUi_removesMovement`) pero sin aserción de la emisión
+      intermedia del Flow.
 - [ ] E2E único de ciclo de vida completo
       (institución→inversión→depósito→compra→venta→retiro→eliminar).
 - [ ] Invariante de distribución: no se asserta `suma(distribuciones) == patrimonio total`.
@@ -158,8 +170,9 @@ contra `QA_FLOW_VALIDATION.md`. Los huecos que tocan integridad financiera se el
 - [ ] Volumen (20 instituciones / 100 inversiones / 1 000 movimientos) y rendimiento.
 - [ ] Optimización basada en mediciones.
 
-> Nota: los conteos de tests en verde provienen del resumen de este documento; esta
-> revisión describe cobertura observada, no una nueva ejecución de la suite.
+> Nota: P0 cerrado y verificado ejecutando `:app:testDebugUnitTest` (159/159),
+> `:app:connectedDebugAndroidTest` (24/24) y `:app:lintDebug` sobre `Medium_Phone`
+> (API 37). P1/P2 siguen pendientes.
 
 ---
 

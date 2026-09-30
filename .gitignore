@@ -9,3 +9,8 @@
 .cxx
 local.properties
 app/build
+
+# Android signing / secrets
+keystore.properties
+*.jks
+*.keystore

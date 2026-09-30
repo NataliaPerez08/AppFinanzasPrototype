@@ -114,17 +114,52 @@ Requiere Espresso 3.7.0 (corrige `InputManager.getInstance` eliminado en API 34+
 
 ---
 
-## Pendientes (del roadmap, no bloqueantes)
+## Pendientes y huecos de cobertura
 
-### P1
-- [ ] Editar/eliminar movimientos e inversiones: falta prueba de recreación de Activity.
+Cobertura revisada por inspección estática de `app/src/test` y `app/src/androidTest`
+contra `QA_FLOW_VALIDATION.md`. Los huecos que tocan integridad financiera se elevan a P0.
+
+### P0 — integridad financiera
+
+- [ ] **Precisión monetaria.** El dominio usa `Double` para dinero; solo se prueba
+      el redondeo a 2 decimales (`LedgerCalculatorTest.rounds monetary values to
+      two decimals`). Faltan `$0.01`, centavos y acumulación de muchas transacciones
+      sin error visible. No hay aserciones con `BigDecimal`.
+- [ ] **Retiros.** Faltan retiro total, cero y negativo; solo están cubiertos parcial
+      (`LedgerCalculatorTest.withdrawal reduces cash and capital`) y superior al saldo
+      (`validate rejects withdrawal above cash`, `AddTransactionUseCaseTest.retiro…`).
+- [ ] **Ventas en instrumentado.** No hay venta parcial 100→60, venta total →0 ni venta
+      inválida (más que la posición) a nivel Android. `InvestmentFlowIntegrationTest`
+      solo vende 2→1; el único caso inválido instrumentado es un retiro.
+- [ ] **Editar/eliminar por tipo.** Depósito/compra/venta/retiro están cubiertos en use
+      cases/DAO, pero no a través de UI ni por cada tipo de movimiento.
+
+### P1 — flujos y estados
+
+- [ ] Cancelar edición de inversión y cancelar el diálogo de borrado.
+- [ ] Eliminar una inversión sin movimientos (los seeds siempre crean depósito inicial).
 - [ ] Back/cancelación en formularios desde UI instrumentada.
+- [ ] Recreación de Activity (dashboard, detalle, formularios).
+- [ ] Doble-Save / recomposición / re-entrada: falta verificar que no se dupliquen registros.
+- [ ] Propagación reactiva completa `DB → Flow → ViewModel → UI`: solo probada con una
+      compra (`roomChangesPropagateThroughFlows`, `registerBuy_updatesDetailQuantity`);
+      sin edición ni borrado.
+- [ ] E2E único de ciclo de vida completo
+      (institución→inversión→depósito→compra→venta→retiro→eliminar).
+- [ ] Invariante de distribución: no se asserta `suma(distribuciones) == patrimonio total`.
+- [ ] Fechas: sin prueba multi-fecha insertada fuera de orden (solo mismo día por id).
+- [ ] Estados vacíos/`NaN`/`Infinity`: `Rounding` mapea NaN/Inf→0.0, pero sin test.
+- [ ] Proyección: sin rendimiento negativo/cero con portafolio > 0 ni inflación negativa.
 - [ ] Múltiples monedas en un mismo portafolio (conversión).
 - [ ] Fechas históricas / movimientos fuera de orden en pruebas de UI.
 
-### P2
+### P2 — robustez
+
 - [ ] Volumen (20 instituciones / 100 inversiones / 1 000 movimientos) y rendimiento.
 - [ ] Optimización basada en mediciones.
+
+> Nota: los conteos de tests en verde provienen del resumen de este documento; esta
+> revisión describe cobertura observada, no una nueva ejecución de la suite.
 
 ---
 

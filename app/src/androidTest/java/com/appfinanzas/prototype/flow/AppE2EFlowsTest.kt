@@ -90,6 +90,18 @@ class AppE2EFlowsTest {
     }
 
     @Test
+    fun cancelNewInvestment_doesNotPersistData() {
+        waitForText("+ AGREGAR INVERSIÓN")
+        composeRule.onNodeWithText("+ AGREGAR INVERSIÓN").performClick()
+        waitForText("NUEVA INVERSIÓN")
+
+        clickScrolling("CANCELAR")
+
+        waitForText("NO HAY INVERSIONES")
+        assertTrue(runBlocking { repository.observeInvestments().first() }.isEmpty())
+    }
+
+    @Test
     fun deleteInvestment_fromDetail_returnsToEmptyPortfolio() {
         seedInvestment()
 
@@ -104,6 +116,23 @@ class AppE2EFlowsTest {
 
         waitForText("NO HAY INVERSIONES")
         assertTrue(runBlocking { repository.observeInvestments().first() }.isEmpty())
+    }
+
+    @Test
+    fun cancelDeleteDialog_keepsInvestment() {
+        seedInvestment()
+
+        composeRule.onNodeWithText("INVERSIONES").performClick()
+        waitForText("APPLE")
+        composeRule.onNodeWithText("APPLE").performClick()
+        waitForText("ELIMINAR INVERSIÓN")
+
+        clickScrolling("ELIMINAR INVERSIÓN")
+        waitForText("ELIMINAR")
+        composeRule.onNodeWithText("CANCELAR").performClick()
+
+        waitForText("VALOR ACTUAL")
+        assertTrue(runBlocking { repository.observeInvestments().first() }.isNotEmpty())
     }
 
     @Test
@@ -123,6 +152,35 @@ class AppE2EFlowsTest {
         clickScrolling("GUARDAR MOVIMIENTO")
 
         waitForText("2.00")
+    }
+
+    @Test
+    fun cancelNewTransaction_keepsInvestmentUnchanged() {
+        val investmentId = seedInvestment()
+
+        composeRule.onNodeWithText("INVERSIONES").performClick()
+        waitForText("APPLE")
+        composeRule.onNodeWithText("APPLE").performClick()
+        waitForText("REGISTRAR MOVIMIENTO")
+
+        clickScrolling("REGISTRAR MOVIMIENTO")
+        waitForText("REGISTRAR MOVIMIENTO")
+        clickScrolling("CANCELAR")
+
+        waitForText("VALOR ACTUAL")
+        assertTrue(
+            runBlocking { repository.getTransactions(investmentId).size == 1 },
+        )
+    }
+
+    @Test
+    fun recreatingActivity_preservesDashboardData() {
+        seedInvestment()
+
+        composeRule.runOnUiThread { composeRule.activity.recreate() }
+
+        waitForText("VALOR ACTUAL")
+        waitForText("\$10,000.00 MXN")
     }
 
     private fun seedInvestment(): Long = runBlocking {

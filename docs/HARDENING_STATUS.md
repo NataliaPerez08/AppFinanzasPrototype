@@ -8,7 +8,7 @@ integración del roadmap (`ROADMAP_UI_INTEGRATION.md`), verificado con código y
 | Métrica | Valor |
 |---|---|
 | Tests unitarios (JVM) | 167 / 167 |
-| Tests instrumentados (Android) | 24 / 24 |
+| Tests instrumentados (Android) | 33 / 33 |
 | Flujos E2E de aplicación | 5 (crear inversión, registrar compra, eliminar inversión, editar movimiento, eliminar movimiento) |
 | Migración Room 1 → 2 | Validada |
 | `assembleDebug` | OK |
@@ -149,9 +149,9 @@ durante la validación QA de flujos. Los huecos que tocan integridad financiera 
 - [x] Cancelar edición de inversión y cancelar el diálogo de borrado. Los formularios
       exponen `Cancelar` y la navegación vuelve mediante `popBackStack`.
 - [ ] Eliminar una inversión sin movimientos (los seeds siempre crean depósito inicial).
-- [ ] Back/cancelación en formularios desde UI instrumentada. La acción está implementada;
-      falta la aserción específica en dispositivo.
-- [ ] Recreación de Activity (dashboard, detalle, formularios).
+- [x] Back/cancelación en formularios desde UI instrumentada. `AppE2EFlowsTest` cubre
+      cancelar nueva inversión, nuevo movimiento y diálogo de borrado.
+- [x] Recreación de Activity en dashboard: `recreatingActivity_preservesDashboardData`.
 - [x] Doble-Save: `AddInvestmentViewModelTest` y `AddTransactionViewModelTest` verifican
       que dos envíos consecutivos solo persistan un registro. La recreación y re-entrada
       de Activity siguen pendientes.
@@ -185,7 +185,7 @@ durante la validación QA de flujos. Los huecos que tocan integridad financiera 
 - [ ] Optimización basada en mediciones.
 
 > Nota: P0 cerrado y verificado ejecutando `:app:testDebugUnitTest` (167/167),
-> `:app:connectedDebugAndroidTest` (24/24) y `:app:lintDebug` sobre `Medium_Phone`
+> `:app:connectedDebugAndroidTest` (33/33) y `:app:lintDebug` sobre `moto g24 - 14`
 > (API 37). P1/P2 siguen pendientes.
 
 ---

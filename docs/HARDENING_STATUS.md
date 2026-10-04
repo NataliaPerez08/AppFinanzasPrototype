@@ -165,8 +165,8 @@ durante la validación QA de flujos. Los huecos que tocan integridad financiera 
       `deletingTransaction_emitsRecomputedInvestmentThroughFlow` verifican las emisiones
       inicial y posterior para compra, edición y borrado. La propagación hasta UiState
       queda cubierta por los E2E de UI correspondientes.
-- [ ] E2E único de ciclo de vida completo
-      (institución→inversión→depósito→compra→venta→retiro→eliminar).
+- [x] E2E único de ciclo de vida completo en `AppE2EFlowsTest`:
+      institución→inversión→depósito→compra→venta→retiro→eliminar.
 - [x] Invariante de distribución: tests verifican que las distribuciones por categoría,
       institución y moneda reconcilian con el patrimonio total.
 - [x] Fechas: `LedgerCalculatorTest` verifica movimientos de varias fechas insertados

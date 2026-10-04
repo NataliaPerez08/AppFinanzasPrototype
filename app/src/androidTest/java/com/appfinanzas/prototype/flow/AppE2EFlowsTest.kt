@@ -226,6 +226,52 @@ class AppE2EFlowsTest {
         composeRule.onNodeWithContentDescription("Precio MXN").assertTextContains("100")
     }
 
+    @Test
+    fun completeInvestmentLifecycle_throughUi_persistsAndDeletesAllData() {
+        val investmentId = seedInvestment()
+
+        composeRule.onNodeWithText("INVERSIONES").performClick()
+        waitForText("APPLE")
+        composeRule.onNodeWithText("APPLE").performClick()
+        waitForText("REGISTRAR MOVIMIENTO")
+
+        clickScrolling("REGISTRAR MOVIMIENTO")
+        waitForText("REGISTRAR MOVIMIENTO")
+        clickScrolling("COMPRA")
+        typeInto("Cantidad", "2")
+        typeInto("Precio MXN", "100")
+        clickScrolling("GUARDAR MOVIMIENTO")
+        waitForText("2.00")
+
+        clickScrolling("REGISTRAR MOVIMIENTO")
+        waitForText("REGISTRAR MOVIMIENTO")
+        clickScrolling("VENTA")
+        typeInto("Cantidad", "1")
+        typeInto("Precio MXN", "120")
+        clickScrolling("GUARDAR MOVIMIENTO")
+        waitForText("1.00")
+
+        clickScrolling("REGISTRAR MOVIMIENTO")
+        waitForText("REGISTRAR MOVIMIENTO")
+        clickScrolling("RETIRO")
+        typeInto("Monto MXN", "100")
+        clickScrolling("GUARDAR MOVIMIENTO")
+        waitForText("EFECTIVO")
+
+        assertTrue(
+            runBlocking {
+                repository.getTransactions(investmentId).map { it.type } ==
+                    listOf(TransactionType.DEPOSITO, TransactionType.COMPRA, TransactionType.VENTA, TransactionType.RETIRO)
+            },
+        )
+
+        clickScrolling("ELIMINAR INVERSIÓN")
+        waitForText("ELIMINAR")
+        composeRule.onNodeWithText("ELIMINAR").performClick()
+        waitForText("NO HAY INVERSIONES")
+        assertTrue(runBlocking { repository.getInvestment(investmentId) == null })
+    }
+
     private fun seedInvestment(): Long = runBlocking {
         val institutionId = repository.observeInstitutions().first().first().id
         val result = AddInvestmentUseCase(repository).execute(FlowTestHarness.investmentForm(institutionId))

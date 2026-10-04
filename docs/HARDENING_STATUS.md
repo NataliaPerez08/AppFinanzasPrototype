@@ -187,11 +187,14 @@ durante la validación QA de flujos. Los huecos que tocan integridad financiera 
       `moto g24 - 14`: seed 4.599 s, consulta de inversiones 16.9 ms, consulta
       promedio por inversión 3.1 ms, primera emisión del Flow 66.0 ms y
       recomputación de ledgers 269.3 ms.
-- [ ] Optimización basada en mediciones.
+- [x] Optimización basada en mediciones. Los tiempos medidos están por debajo de los
+      umbrales definidos y no justifican cambios especulativos en Room, Flow o el
+      cálculo del ledger. Se conserva la implementación actual como baseline.
 
 > Nota: P0 cerrado y verificado ejecutando `:app:testDebugUnitTest` (167/167),
-> `:app:connectedDebugAndroidTest` (33/33) y `:app:lintDebug` sobre `moto g24 - 14`
-> (API 37). P1/P2 siguen pendientes.
+> `:app:connectedDebugAndroidTest` (41/41) y `:app:lintDebug` sobre `moto g24 - 14`
+> (API 37). P1 solo conserva pendiente la conversión multi-moneda; P2 de volumen
+> y rendimiento está cerrado según las mediciones registradas.
 
 ---
 

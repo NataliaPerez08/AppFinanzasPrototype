@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -16,6 +17,7 @@ import com.appfinanzas.prototype.ui.components.FinancePanel
 import com.appfinanzas.prototype.ui.components.FinanceScreen
 import com.appfinanzas.prototype.ui.navigation.Routes
 import com.appfinanzas.prototype.ui.theme.FinanzasColors
+import com.appfinanzas.prototype.R
 
 @Composable
 fun MoreScreen(onNavigate: (String) -> Unit) {
@@ -26,6 +28,18 @@ fun MoreScreen(onNavigate: (String) -> Unit) {
         onNavigate = onNavigate,
     ) {
         FinancePanel {
+            Text(
+                text = stringResource(R.string.app_name),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = FinanzasColors.Text,
+            )
+            Text(
+                text = stringResource(R.string.app_descriptor),
+                style = MaterialTheme.typography.labelMedium,
+                color = FinanzasColors.Text.copy(alpha = 0.65f),
+                modifier = Modifier.padding(bottom = 12.dp),
+            )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

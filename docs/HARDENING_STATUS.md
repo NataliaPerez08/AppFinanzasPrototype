@@ -1,4 +1,4 @@
-# HARDENING_STATUS — App Finanzas
+# HARDENING_STATUS — PULSO
 
 Estado de cumplimiento del **Hardening Fases 1–5** (`HARDENING_PLAN.md`) y de la
 integración del roadmap (`ROADMAP_UI_INTEGRATION.md`), verificado con código y tests.
@@ -167,7 +167,11 @@ durante la validación QA de flujos. Los huecos que tocan integridad financiera 
 
 ### P2 — robustez
 
-- [ ] Volumen (20 instituciones / 100 inversiones / 1 000 movimientos) y rendimiento.
+- [x] Volumen (20 instituciones / 100 inversiones / 1 000 movimientos) y rendimiento.
+      `LedgerVolumeTest` pasó en JVM. `RoomVolumeTest` pasó en dispositivo físico
+      `moto g24 - 14`: seed 4.599 s, consulta de inversiones 16.9 ms, consulta
+      promedio por inversión 3.1 ms, primera emisión del Flow 66.0 ms y
+      recomputación de ledgers 269.3 ms.
 - [ ] Optimización basada en mediciones.
 
 > Nota: P0 cerrado y verificado ejecutando `:app:testDebugUnitTest` (159/159),

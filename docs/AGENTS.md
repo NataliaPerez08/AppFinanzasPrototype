@@ -1,8 +1,8 @@
-# AGENTS.md — App Finanzas
+# AGENTS.md — PULSO
 
 ## Objetivo
 
-Integrar el prototipo visual neo-brutalista de App Finanzas en el proyecto Android existente, respetando la arquitectura y funcionalidad construidas durante las fases 1–5.
+Integrar el prototipo visual neo-brutalista de PULSO (Patrimonio e inversiones) en el proyecto Android existente, respetando la arquitectura y funcionalidad construidas durante las fases 1–5.
 
 El prototipo `AppFinanzasPrototype` es una **referencia de UI/UX**, no una nueva arquitectura ni una nueva fuente de datos.
 

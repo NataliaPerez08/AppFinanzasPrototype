@@ -1,4 +1,4 @@
-# Hardening — App Finanzas
+# Hardening — PULSO
 
 > Estado de cumplimiento verificado en `HARDENING_STATUS.md` (P0 completado,
 > P1/P2 pendientes).

@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Convertir **App Finanzas** desde su estado actual de prototipo funcional y técnicamente estable a una **versión 1.0 lista para distribución en Google Play**.
+Convertir **PULSO** desde su estado actual de prototipo funcional y técnicamente estable a una **versión 1.0 lista para distribución en Google Play**.
 
 Esta fase no debe introducir nuevas funcionalidades de producto salvo que sean necesarias para publicación, estabilidad, seguridad, compatibilidad o cumplimiento.
 
@@ -767,7 +767,7 @@ revisar nuevamente Data Safety antes de publicar esa actualización.
 
 # P0 — Financial Features Declaration
 
-App Finanzas gestiona información relacionada con inversiones.
+PULSO gestiona información relacionada con inversiones.
 
 Completar:
 
@@ -1356,7 +1356,7 @@ Closed Testing completado si aplica
 Y finalmente:
 
 ```text
-App Finanzas 1.0 puede promoverse a Production sin cambios adicionales de código.
+PULSO 1.0 puede promoverse a Production sin cambios adicionales de código.
 ```
 
 ---

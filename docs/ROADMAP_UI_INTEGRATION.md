@@ -1,8 +1,8 @@
-# App Finanzas — Roadmap de Integración UI
+# PULSO — Roadmap de Integración UI
 
 ## Objetivo
 
-Integrar el nuevo prototipo visual de **App Finanzas** en el proyecto Android existente, manteniendo la arquitectura y funcionalidad desarrolladas durante las fases 1–5.
+Integrar el nuevo prototipo visual de **PULSO** en el proyecto Android existente, manteniendo la arquitectura y funcionalidad desarrolladas durante las fases 1–5.
 
 El prototipo visual es una referencia de **UI/UX**.
 
@@ -949,7 +949,7 @@ Nunca dejar la rama principal en un estado donde la siguiente fase sea necesaria
 
 # Siguiente etapa
 
-Una vez completadas las fases 1–5, continuar con las fases posteriores del roadmap general de App Finanzas.
+Una vez completadas las fases 1–5, continuar con las fases posteriores del roadmap general de PULSO.
 
 La arquitectura debe quedar preparada para incorporar progresivamente:
 

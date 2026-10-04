@@ -1,6 +1,6 @@
-# App Finanzas
+# PULSO
 
-Aplicación Android de finanzas personales (Kotlin + Jetpack Compose) con
+**Patrimonio e inversiones.** Aplicación Android de finanzas personales (Kotlin + Jetpack Compose) con
 persistencia local en Room, arquitectura por capas y sistema visual
 neo-brutalista.
 
@@ -39,7 +39,7 @@ Formato monetario, porcentual y de fecha centralizado (`MoneyFormatter`,
 
 ## Ejecutar
 
-1. Abre la carpeta `AppFinanzasPrototype` en Android Studio.
+1. Abre la carpeta del proyecto en Android Studio.
 2. Espera la sincronización de Gradle.
 3. Ejecuta `app` en un emulador/dispositivo Android 8+ (API 26+).
 

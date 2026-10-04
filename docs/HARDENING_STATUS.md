@@ -176,7 +176,9 @@ durante la validación QA de flujos. Los huecos que tocan integridad financiera 
 - [x] Proyección: cobertura de rendimiento negativo, inflación negativa y portafolio
       positivo.
 - [ ] Múltiples monedas en un mismo portafolio (conversión).
-- [ ] Fechas históricas / movimientos fuera de orden en pruebas de UI.
+- [x] Fechas históricas / movimientos fuera de orden en UI. `AppE2EFlowsTest`
+      inserta un depósito con fecha anterior después de una compra y verifica el
+      orden cronológico y el ledger recalculado.
 
 ### P2 — robustez
 

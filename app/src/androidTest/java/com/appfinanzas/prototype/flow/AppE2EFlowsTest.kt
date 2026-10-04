@@ -272,6 +272,43 @@ class AppE2EFlowsTest {
         assertTrue(runBlocking { repository.getInvestment(investmentId) == null })
     }
 
+    @Test
+    fun historicalTransactionInsertedOutOfOrder_throughUi_recomputesLedger() {
+        val investmentId = seedInvestment()
+
+        composeRule.onNodeWithText("INVERSIONES").performClick()
+        waitForText("APPLE")
+        composeRule.onNodeWithText("APPLE").performClick()
+        waitForText("REGISTRAR MOVIMIENTO")
+
+        clickScrolling("REGISTRAR MOVIMIENTO")
+        waitForText("REGISTRAR MOVIMIENTO")
+        clickScrolling("COMPRA")
+        replaceInto("Fecha", FlowTestHarness.pastDate(1))
+        typeInto("Cantidad", "2")
+        typeInto("Precio MXN", "100")
+        clickScrolling("GUARDAR MOVIMIENTO")
+        waitForText("2.00")
+
+        clickScrolling("REGISTRAR MOVIMIENTO")
+        waitForText("REGISTRAR MOVIMIENTO")
+        clickScrolling("DEPÓSITO")
+        replaceInto("Fecha", FlowTestHarness.pastDate(3))
+        typeInto("Monto MXN", "500")
+        clickScrolling("GUARDAR MOVIMIENTO")
+        waitForText("EFECTIVO")
+
+        val transactions = runBlocking { repository.getTransactions(investmentId) }
+        val investment = runBlocking { repository.getInvestment(investmentId)!! }
+        assertTrue(transactions.map { it.type } == listOf(
+            TransactionType.DEPOSITO,
+            TransactionType.DEPOSITO,
+            TransactionType.COMPRA,
+        ))
+        assertTrue(investment.quantity == 2.0)
+        assertTrue(investment.cashBalance == 10_300.0)
+    }
+
     private fun seedInvestment(): Long = runBlocking {
         val institutionId = repository.observeInstitutions().first().first().id
         val result = AddInvestmentUseCase(repository).execute(FlowTestHarness.investmentForm(institutionId))
@@ -339,5 +376,9 @@ class AppE2EFlowsTest {
 
     private fun typeInto(label: String, value: String) {
         composeRule.onNodeWithContentDescription(label).performScrollTo().performTextInput(value)
+    }
+
+    private fun replaceInto(label: String, value: String) {
+        composeRule.onNodeWithContentDescription(label).performScrollTo().performTextReplacement(value)
     }
 }

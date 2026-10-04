@@ -76,10 +76,10 @@ private fun InvestmentsContent(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         FinancePanel(Modifier.weight(1f)) {
-            MoneyMetric(label = "Valor total", amount = state.totalValue)
+            MoneyMetric(label = "Valor total", amount = state.totalValue, currency = state.baseCurrency)
         }
         FinancePanel(Modifier.weight(1f)) {
-            MoneyMetric(label = "Ganancia", amount = state.totalProfit, accent = true)
+            MoneyMetric(label = "Ganancia", amount = state.totalProfit, currency = state.baseCurrency, accent = true)
         }
     }
     Spacer(Modifier.height(8.dp))
@@ -93,7 +93,7 @@ private fun InvestmentsContent(
         AssetRow(
             name = item.name,
             subtitle = item.subtitle,
-            value = MoneyFormatter.format(item.value),
+            value = MoneyFormatter.format(item.value, item.currency),
             change = PercentageFormatter.format(item.change),
             onClick = { onNavigate(Routes.investmentDetail(item.id)) },
         )

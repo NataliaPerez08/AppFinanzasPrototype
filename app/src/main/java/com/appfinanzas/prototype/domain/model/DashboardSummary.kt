@@ -1,6 +1,7 @@
 package com.appfinanzas.prototype.domain.model
 
 data class DashboardSummary(
+    val baseCurrency: Currency = Currency.MXN,
     val portfolioValue: Double,
     val dailyChange: Double,
     val dailyChangePercentage: Double,

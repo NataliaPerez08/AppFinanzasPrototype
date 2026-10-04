@@ -35,6 +35,7 @@ class SettingsViewModel(
                     _uiState.value = SettingsUiState(
                         isLoading = false,
                         baseCurrency = settings.baseCurrency,
+                        usdToMxnRateText = settings.usdToMxnRate.toString(),
                         inflationText = settings.estimatedInflation.toString(),
                         isrText = settings.estimatedIsr.toString(),
                         expectedReturnText = settings.expectedReturn.toString(),
@@ -54,6 +55,10 @@ class SettingsViewModel(
         _uiState.update { it.copy(inflationText = value, saved = false) }
     }
 
+    fun onUsdToMxnRateChange(value: String) {
+        _uiState.update { it.copy(usdToMxnRateText = value, saved = false) }
+    }
+
     fun onIsrChange(value: String) {
         _uiState.update { it.copy(isrText = value, saved = false) }
     }
@@ -68,6 +73,7 @@ class SettingsViewModel(
         val inflation = state.inflationText.toDoubleOrNull()
         val isr = state.isrText.toDoubleOrNull()
         val expectedReturn = state.expectedReturnText.toDoubleOrNull()
+        val usdToMxnRate = state.usdToMxnRateText.toDoubleOrNull()
         if (inflation == null || inflation < 0.0) {
             _uiState.update { it.copy(formError = "Inflación inválida") }
             return
@@ -80,6 +86,10 @@ class SettingsViewModel(
             _uiState.update { it.copy(formError = "Rendimiento inválido") }
             return
         }
+        if (usdToMxnRate == null || usdToMxnRate <= 0.0) {
+            _uiState.update { it.copy(formError = "Tipo de cambio inválido") }
+            return
+        }
         viewModelScope.launch {
             _uiState.update { it.copy(isSubmitting = true, formError = null) }
             saveSettings.execute(
@@ -88,6 +98,7 @@ class SettingsViewModel(
                     estimatedInflation = inflation,
                     estimatedIsr = isr,
                     expectedReturn = expectedReturn,
+                    usdToMxnRate = usdToMxnRate,
                 ),
             )
             _uiState.update { it.copy(isSubmitting = false, saved = true) }

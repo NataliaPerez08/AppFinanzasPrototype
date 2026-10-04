@@ -72,14 +72,14 @@ class GetPortfolioSummaryTest {
         )
 
         assertEquals("GBM", summary.byInstitution[0].label)
-        assertEquals(4_000.0, summary.byInstitution[0].value, 0.001)
+        assertEquals(61_000.0, summary.byInstitution[0].value, 0.001)
         assertEquals("NU", summary.byInstitution[1].label)
         assertEquals(2_000.0, summary.byInstitution[1].value, 0.001)
 
         assertEquals(2, summary.byCurrency.size)
-        assertEquals("MXN", summary.byCurrency[0].label)
-        assertEquals(3_000.0, summary.byCurrency[0].value, 0.001)
-        assertEquals("USD", summary.byCurrency[1].label)
+        assertEquals("USD", summary.byCurrency[0].label)
+        assertEquals(60_000.0, summary.byCurrency[0].value, 0.001)
+        assertEquals("MXN", summary.byCurrency[1].label)
         assertEquals(3_000.0, summary.byCurrency[1].value, 0.001)
     }
 

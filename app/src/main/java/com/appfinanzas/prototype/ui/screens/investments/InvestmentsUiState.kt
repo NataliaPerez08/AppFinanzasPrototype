@@ -7,6 +7,7 @@ import com.appfinanzas.prototype.domain.model.InvestmentsData
 
 data class InvestmentsUiState(
     val isLoading: Boolean = false,
+    val baseCurrency: Currency = Currency.MXN,
     val totalValue: Double = 0.0,
     val totalProfit: Double = 0.0,
     val filter: InvestmentCategory? = null,
@@ -27,10 +28,11 @@ data class InvestmentUi(
 internal fun InvestmentsData.toUiState(filter: InvestmentCategory?): InvestmentsUiState =
     InvestmentsUiState(
         totalValue = totalValue,
+        baseCurrency = baseCurrency,
         totalProfit = totalProfit,
         filter = filter,
         investments = investments.map { it.toUi() },
-        isEmpty = totalValue == 0.0,
+        isEmpty = investments.isEmpty(),
     )
 
 internal fun Investment.toUi(): InvestmentUi =

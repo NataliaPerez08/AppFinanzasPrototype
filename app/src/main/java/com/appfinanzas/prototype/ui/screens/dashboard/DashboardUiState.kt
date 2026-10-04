@@ -1,10 +1,12 @@
 package com.appfinanzas.prototype.ui.screens.dashboard
 
 import com.appfinanzas.prototype.domain.model.DashboardSummary
+import com.appfinanzas.prototype.domain.model.Currency
 import com.appfinanzas.prototype.ui.components.AllocationItem
 
 data class DashboardUiState(
     val isLoading: Boolean = false,
+    val baseCurrency: Currency = Currency.MXN,
     val portfolioValue: Double = 0.0,
     val dailyChange: Double = 0.0,
     val dailyChangePercentage: Double = 0.0,
@@ -21,6 +23,7 @@ internal fun DashboardSummary.toUiState(): DashboardUiState {
     val totalAllocation = allocation.sumOf { it.value }
     return DashboardUiState(
         portfolioValue = portfolioValue,
+        baseCurrency = baseCurrency,
         dailyChange = dailyChange,
         dailyChangePercentage = dailyChangePercentage,
         investedCapital = investedCapital,

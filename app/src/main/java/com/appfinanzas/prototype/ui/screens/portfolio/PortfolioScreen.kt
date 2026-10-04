@@ -46,8 +46,8 @@ fun PortfolioScreen(onNavigate: (String) -> Unit) {
 @Composable
 private fun PortfolioContent(state: PortfolioUiState) {
     FinancePanel {
-        MoneyMetric(label = "Valor actual", amount = state.portfolioValue)
-        MoneyMetric(label = "Capital aportado", amount = state.investedCapital)
+        MoneyMetric(label = "Valor actual", amount = state.portfolioValue, currency = state.baseCurrency)
+        MoneyMetric(label = "Capital aportado", amount = state.investedCapital, currency = state.baseCurrency)
         MoneyMetric(label = "Ganancia", amount = state.profit, accent = true)
         PercentageMetric(label = "Rendimiento", percentage = state.performance)
     }

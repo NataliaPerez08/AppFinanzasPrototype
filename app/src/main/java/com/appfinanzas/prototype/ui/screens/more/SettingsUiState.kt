@@ -5,6 +5,7 @@ import com.appfinanzas.prototype.domain.model.Currency
 data class SettingsUiState(
     val isLoading: Boolean = true,
     val baseCurrency: Currency = Currency.MXN,
+    val usdToMxnRateText: String = "",
     val inflationText: String = "",
     val isrText: String = "",
     val expectedReturnText: String = "",

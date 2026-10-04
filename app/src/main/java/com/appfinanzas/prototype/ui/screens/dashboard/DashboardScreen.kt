@@ -58,10 +58,10 @@ private fun DashboardContent(state: DashboardUiState) {
     FinancePanel {
         PrimaryMetric(
             label = "Valor actual",
-            value = MoneyFormatter.format(state.portfolioValue),
+            value = MoneyFormatter.format(state.portfolioValue, state.baseCurrency),
         )
         Text(
-            text = "${MoneyFormatter.format(state.dailyChange)}  ${PercentageFormatter.format(state.dailyChangePercentage)}  HOY",
+            text = "${MoneyFormatter.format(state.dailyChange, state.baseCurrency)}  ${PercentageFormatter.format(state.dailyChangePercentage)}  HOY",
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold,
             color = FinanzasColors.Accent,
@@ -73,10 +73,10 @@ private fun DashboardContent(state: DashboardUiState) {
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         FinancePanel(Modifier.weight(1f)) {
-            MoneyMetric(label = "Capital aportado", amount = state.investedCapital)
+            MoneyMetric(label = "Capital aportado", amount = state.investedCapital, currency = state.baseCurrency)
         }
         FinancePanel(Modifier.weight(1f)) {
-            MoneyMetric(label = "Ganancia", amount = state.profit, accent = true)
+            MoneyMetric(label = "Ganancia", amount = state.profit, currency = state.baseCurrency, accent = true)
         }
     }
     Spacer(Modifier.height(8.dp))

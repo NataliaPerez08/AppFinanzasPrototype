@@ -81,7 +81,7 @@ class RoomInvestmentRepositoryTest {
 
     @Test
     fun settingsRoundTrip() = runTest {
-        val settings = AppSettings(Currency.USD, 5.0, 3.0, 9.0)
+        val settings = AppSettings(Currency.USD, 5.0, 3.0, 9.0, 21.5)
         repository.saveSettings(settings)
 
         assertEquals(settings, repository.observeSettings().first())

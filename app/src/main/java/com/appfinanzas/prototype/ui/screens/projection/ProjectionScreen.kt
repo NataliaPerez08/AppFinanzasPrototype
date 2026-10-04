@@ -101,12 +101,12 @@ private fun ProjectionContent(
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        text = MoneyFormatter.format(scenario.nominal),
+                        text = MoneyFormatter.format(scenario.nominal, state.baseCurrency),
                         style = MaterialTheme.typography.titleSmall,
                         color = FinanzasColors.Text,
                     )
                     Text(
-                        text = MoneyFormatter.format(scenario.real),
+                        text = MoneyFormatter.format(scenario.real, state.baseCurrency),
                         style = MaterialTheme.typography.labelMedium,
                         color = FinanzasColors.Accent,
                     )

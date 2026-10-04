@@ -59,6 +59,11 @@ fun SettingsScreen(onNavigate: (String) -> Unit) {
                     value = state.expectedReturnText,
                     onValueChange = viewModel::onExpectedReturnChange,
                 )
+                FinanceTextField(
+                    label = "Tipo de cambio USD/MXN",
+                    value = state.usdToMxnRateText,
+                    onValueChange = viewModel::onUsdToMxnRateChange,
+                )
                 val formError = state.formError
                 if (formError != null) {
                     FinanceErrorText(formError)

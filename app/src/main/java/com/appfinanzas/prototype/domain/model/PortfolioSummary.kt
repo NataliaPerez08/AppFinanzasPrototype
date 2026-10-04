@@ -1,6 +1,7 @@
 package com.appfinanzas.prototype.domain.model
 
 data class PortfolioSummary(
+    val baseCurrency: Currency = Currency.MXN,
     val portfolioValue: Double,
     val investedCapital: Double,
     val profit: Double,

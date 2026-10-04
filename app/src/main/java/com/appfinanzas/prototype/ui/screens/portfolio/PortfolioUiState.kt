@@ -1,10 +1,12 @@
 package com.appfinanzas.prototype.ui.screens.portfolio
 
 import com.appfinanzas.prototype.domain.model.PortfolioSummary
+import com.appfinanzas.prototype.domain.model.Currency
 import com.appfinanzas.prototype.ui.components.AllocationItem
 
 data class PortfolioUiState(
     val isLoading: Boolean = false,
+    val baseCurrency: Currency = Currency.MXN,
     val portfolioValue: Double = 0.0,
     val investedCapital: Double = 0.0,
     val profit: Double = 0.0,
@@ -25,6 +27,7 @@ internal fun PortfolioSummary.toUiState(): PortfolioUiState {
         )
     return PortfolioUiState(
         portfolioValue = portfolioValue,
+        baseCurrency = baseCurrency,
         investedCapital = investedCapital,
         profit = profit,
         performance = performance,

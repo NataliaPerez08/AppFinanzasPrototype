@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.appfinanzas.prototype.di.AppContainer
+import com.appfinanzas.prototype.domain.money.CurrencyConverter
 import com.appfinanzas.prototype.domain.repository.InvestmentRepository
 import com.appfinanzas.prototype.domain.usecase.GetProjection
 import com.appfinanzas.prototype.domain.usecase.GetSettings
@@ -54,13 +55,18 @@ class ProjectionViewModel(
         loadJob = viewModelScope.launch {
             try {
                 combine(
-                    repository.observeInvestments().map { list -> list.sumOf { it.currentValue } },
+                    repository.observeInvestments(),
                     getSettings.observe(),
-                ) { currentValue, settings -> currentValue to settings }
-                    .collect { (currentValue, settings) ->
+                ) { investments, settings ->
+                    val currentValue = investments.sumOf {
+                        CurrencyConverter.convert(it.currentValue, it.currency, settings.baseCurrency, settings.usdToMxnRate)
+                    }
+                    currentValue to settings
+                }.collect { (currentValue, settings) ->
                         _uiState.update { state ->
                             state.copy(
                                 currentValue = currentValue,
+                                baseCurrency = settings.baseCurrency,
                                 isLoading = false,
                                 isEmpty = currentValue == 0.0,
                                 inflationText = state.inflationText.ifBlank { settings.estimatedInflation.toString() },

@@ -175,7 +175,10 @@ durante la validación QA de flujos. Los huecos que tocan integridad financiera 
       y tienen cobertura de tests.
 - [x] Proyección: cobertura de rendimiento negativo, inflación negativa y portafolio
       positivo.
-- [ ] Múltiples monedas en un mismo portafolio (conversión).
+- [x] Múltiples monedas en un mismo portafolio. `CurrencyConverter` convierte MXN/USD
+      usando el tipo USD/MXN persistido en configuración; agregados y proyección usan
+      la moneda base. Cubierto por `CurrencyConverterTest` y
+      `GetPortfolioSummaryTest`.
 - [x] Fechas históricas / movimientos fuera de orden en UI. `AppE2EFlowsTest`
       inserta un depósito con fecha anterior después de una compra y verifica el
       orden cronológico y el ledger recalculado.
@@ -191,9 +194,10 @@ durante la validación QA de flujos. Los huecos que tocan integridad financiera 
       umbrales definidos y no justifican cambios especulativos en Room, Flow o el
       cálculo del ledger. Se conserva la implementación actual como baseline.
 
-> Nota: P0 cerrado y verificado ejecutando `:app:testDebugUnitTest` (167/167),
+> Nota: P0 cerrado y verificado ejecutando `:app:testDebugUnitTest` (175/175),
 > `:app:connectedDebugAndroidTest` (41/41) y `:app:lintDebug` sobre `moto g24 - 14`
-> (API 37). P1 solo conserva pendiente la conversión multi-moneda; P2 de volumen
+> (API 37). La conversión multi-moneda está implementada; falta repetir la suite
+> instrumentada con un dispositivo conectado después de este cambio. P2 de volumen
 > y rendimiento está cerrado según las mediciones registradas.
 
 ---

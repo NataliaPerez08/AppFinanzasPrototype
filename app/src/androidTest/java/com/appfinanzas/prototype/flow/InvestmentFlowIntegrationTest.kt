@@ -10,8 +10,18 @@ import com.appfinanzas.prototype.domain.usecase.AddTransactionUseCase
 import com.appfinanzas.prototype.domain.usecase.DeleteInvestmentResult
 import com.appfinanzas.prototype.domain.usecase.DeleteInvestmentUseCase
 import com.appfinanzas.prototype.domain.usecase.GetDashboardSummary
+import com.appfinanzas.prototype.domain.usecase.DeleteTransactionResult
+import com.appfinanzas.prototype.domain.usecase.DeleteTransactionUseCase
+import com.appfinanzas.prototype.domain.usecase.UpdateTransactionResult
+import com.appfinanzas.prototype.domain.usecase.UpdateTransactionUseCase
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.runCurrent
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -21,6 +31,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 class InvestmentFlowIntegrationTest {
 
     private lateinit var harness: FlowTestHarness
@@ -148,6 +159,57 @@ class InvestmentFlowIntegrationTest {
 
         val updated = harness.repository.observeInvestment(id).first()!!
         assertEquals(3.0, updated.quantity, 0.001)
+    }
+
+    @Test
+    fun editingTransaction_emitsUpdatedInvestmentThroughFlow() = runTest {
+        val institutionId = harness.seedInstitution()
+        val id = harness.seedInvestment(institutionId)
+        assertTrue(
+            AddTransactionUseCase(harness.repository)
+                .execute(id, FlowTestHarness.transactionForm(TransactionType.COMPRA, "2", "100"))
+                is AddTransactionResult.Success,
+        )
+        val transaction = harness.repository.getTransactions(id).single { it.type == TransactionType.COMPRA }
+        val emissions = backgroundScope.async {
+            harness.repository.observeInvestment(id).filterNotNull().take(2).toList()
+        }
+        runCurrent()
+
+        val result = UpdateTransactionUseCase(harness.repository).execute(
+            investmentId = id,
+            transactionId = transaction.id,
+            form = FlowTestHarness.transactionForm(TransactionType.COMPRA, "5", "100"),
+        )
+
+        assertTrue(result is UpdateTransactionResult.Success)
+        val values = emissions.await()
+        assertEquals(2.0, values[0].quantity, 0.001)
+        assertEquals(5.0, values[1].quantity, 0.001)
+    }
+
+    @Test
+    fun deletingTransaction_emitsRecomputedInvestmentThroughFlow() = runTest {
+        val institutionId = harness.seedInstitution()
+        val id = harness.seedInvestment(institutionId)
+        assertTrue(
+            AddTransactionUseCase(harness.repository)
+                .execute(id, FlowTestHarness.transactionForm(TransactionType.COMPRA, "2", "100"))
+                is AddTransactionResult.Success,
+        )
+        val transaction = harness.repository.getTransactions(id).single { it.type == TransactionType.COMPRA }
+        val emissions = backgroundScope.async {
+            harness.repository.observeInvestment(id).filterNotNull().take(2).toList()
+        }
+        runCurrent()
+
+        val result = DeleteTransactionUseCase(harness.repository).execute(id, transaction.id)
+
+        assertTrue(result is DeleteTransactionResult.Success)
+        val values = emissions.await()
+        assertEquals(2.0, values[0].quantity, 0.001)
+        assertEquals(0.0, values[1].quantity, 0.001)
+        assertEquals(10_000.0, values[1].cashBalance, 0.001)
     }
 
     @Test

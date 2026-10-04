@@ -160,11 +160,11 @@ durante la validación QA de flujos. Los huecos que tocan integridad financiera 
       de Activity siguen pendientes.
 - [x] IDs inexistentes en edición: inversión y movimiento muestran un error en lugar de
       quedar esperando indefinidamente.
-- [ ] Propagación reactiva completa `DB → Flow → ViewModel → UI`: la emisión reactiva
-      intermedia solo se asserta para una compra (`roomChangesPropagateThroughFlows`);
-      edición y borrado ya tienen E2E de UI (`editTransaction_throughUi_updatesQuantity`,
-      `deleteTransaction_throughUi_removesMovement`) pero sin aserción de la emisión
-      intermedia del Flow.
+- [x] Propagación reactiva `DB → Flow → Repository`: `roomChangesPropagateThroughFlows`,
+      `editingTransaction_emitsUpdatedInvestmentThroughFlow` y
+      `deletingTransaction_emitsRecomputedInvestmentThroughFlow` verifican las emisiones
+      inicial y posterior para compra, edición y borrado. La propagación hasta UiState
+      queda cubierta por los E2E de UI correspondientes.
 - [ ] E2E único de ciclo de vida completo
       (institución→inversión→depósito→compra→venta→retiro→eliminar).
 - [x] Invariante de distribución: tests verifican que las distribuciones por categoría,

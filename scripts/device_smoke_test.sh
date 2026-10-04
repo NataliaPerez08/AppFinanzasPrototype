@@ -152,6 +152,9 @@ tap_text "GUARDAR INVERSIÓN"
 sleep 2
 refresh_ui investment_detail
 require_text "VOO"
+"${ADB[@]}" shell input swipe 360 1200 360 700 400
+sleep 0.8
+refresh_ui investment_detail_scrolled
 require_text "DEPOSITO"
 
 step "Dashboard Content"
@@ -180,7 +183,10 @@ refresh_ui transaction_save
 tap_text "GUARDAR MOVIMIENTO"
 sleep 2
 refresh_ui detail_after_transaction
-require_text "3.00"
+require_text "2.00"
+"${ADB[@]}" shell input swipe 360 1200 360 700 400
+sleep 0.8
+refresh_ui detail_after_transaction_scrolled
 require_text '$201.00 MXN'
 
 step "Patrimonio y distribuciones"

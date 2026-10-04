@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">PULSO isotipo</title>
+  <desc id="desc">P geométrica con tres barras ascendentes.</desc>
+  <path fill="#111110" d="M96 104h224c79.529 0 144 64.471 144 144s-64.471 144-144 144h-64v-72h64c39.765 0 72-32.235 72-72s-32.235-72-72-72H96v-72z"/>
+  <rect fill="#111110" x="96" y="296" width="72" height="120"/>
+  <rect fill="#FF641C" x="184" y="264" width="56" height="112"/>
+  <rect fill="#FF641C" x="256" y="224" width="56" height="120"/>
+</svg>

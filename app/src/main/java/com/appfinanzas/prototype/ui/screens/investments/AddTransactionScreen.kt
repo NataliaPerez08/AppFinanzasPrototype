@@ -2,6 +2,7 @@ package com.appfinanzas.prototype.ui.screens.investments
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -61,6 +62,7 @@ fun AddTransactionScreen(
         subtitle = state.investmentHeader?.subtitle.orEmpty(),
         selectedTab = Routes.INVESTMENTS,
         onNavigate = onNavigate,
+        modifier = Modifier.imePadding(),
     ) {
         FinanceOptionSelector(
             label = "Tipo",

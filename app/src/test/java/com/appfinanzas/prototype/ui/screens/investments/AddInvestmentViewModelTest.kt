@@ -123,4 +123,37 @@ class AddInvestmentViewModelTest {
 
         assertNotNull(viewModel.uiState.value.formError)
     }
+
+    @Test
+    fun `double submit creates only one investment`() = runTest {
+        val repo = TestInvestmentRepository()
+        val viewModel = viewModel(repo)
+        advanceUntilIdle()
+
+        viewModel.onTypeSelected(InvestmentType.ACCION.name)
+        viewModel.onInstitutionSelected("1")
+        viewModel.onNameChange("Apple")
+        viewModel.onSymbolChange("AAPL")
+        viewModel.onCurrencySelected(Currency.USD.name)
+        viewModel.onInitialValueChange("10000")
+        viewModel.onDateChange("21/09/2026")
+        viewModel.submit()
+        viewModel.submit()
+        advanceUntilIdle()
+
+        assertEquals(1, repo.observeInvestments().first().size)
+    }
+
+    @Test
+    fun `missing investment in edit mode surfaces an error`() = runTest {
+        val viewModel = AddInvestmentViewModel(
+            investmentId = 99L,
+            addInvestmentUseCase = AddInvestmentUseCase(TestInvestmentRepository()),
+            updateInvestmentUseCase = UpdateInvestmentUseCase(TestInvestmentRepository()),
+            repository = TestInvestmentRepository(),
+        )
+        advanceUntilIdle()
+
+        assertEquals("No existe la inversión solicitada", viewModel.uiState.value.formError)
+    }
 }

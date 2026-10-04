@@ -238,6 +238,34 @@ class AddTransactionViewModelTest {
     }
 
     @Test
+    fun `double submit creates only one transaction`() = runTest {
+        val repo = TestInvestmentRepository(
+            investments = listOf(sampleInvestment(id = 1)),
+            transactions = mapOf(1L to listOf(deposit(10_000.0))),
+        )
+        val viewModel = viewModel(repo)
+        advanceUntilIdle()
+
+        viewModel.onTypeSelected(TransactionType.COMPRA.name)
+        viewModel.onQuantityChange("2")
+        viewModel.onPriceChange("100")
+        viewModel.submit()
+        viewModel.submit()
+        advanceUntilIdle()
+
+        assertEquals(2, repo.getTransactions(1).size)
+    }
+
+    @Test
+    fun `missing transaction in edit mode surfaces an error`() = runTest {
+        val repo = TestInvestmentRepository(investments = listOf(sampleInvestment(id = 1)))
+        val viewModel = viewModel(repo, transactionId = 99L)
+        advanceUntilIdle()
+
+        assertEquals("No existe el movimiento solicitado", viewModel.uiState.value.formError)
+    }
+
+    @Test
     fun `edit mode surfaces a business error when ledger breaks`() = runTest {
         val repo = TestInvestmentRepository(
             investments = listOf(sampleInvestment(id = 1)),

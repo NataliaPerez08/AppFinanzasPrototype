@@ -22,8 +22,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -46,15 +45,23 @@ class AddTransactionViewModel(
     init {
         viewModelScope.launch {
             repository.observeInvestment(investmentId)
-                .filterNotNull()
-                .map { it.toHeaderUi() }
-                .collect { header ->
-                    _uiState.update { it.copy(investmentHeader = header) }
+                .first()
+                .let { investment ->
+                    _uiState.update {
+                        if (investment == null) {
+                            it.copy(formError = "No existe la inversión solicitada")
+                        } else {
+                            it.copy(investmentHeader = investment.toHeaderUi())
+                        }
+                    }
                 }
         }
         if (transactionId != null) {
             viewModelScope.launch {
-                repository.getTransaction(transactionId)?.let { transaction ->
+                val transaction = repository.getTransaction(transactionId)
+                if (transaction == null) {
+                    _uiState.update { it.copy(formError = "No existe el movimiento solicitado") }
+                } else {
                     _uiState.update {
                         it.copy(
                             type = transaction.type,
@@ -111,6 +118,7 @@ class AddTransactionViewModel(
     fun submit() {
         val state = _uiState.value
         if (state.isSubmitting) return
+        _uiState.update { it.copy(isSubmitting = true, formError = null) }
         val form = state.toForm()
         if (transactionId == null) {
             create(form)
@@ -121,8 +129,9 @@ class AddTransactionViewModel(
 
     fun delete() {
         val transactionId = this.transactionId ?: return
+        if (_uiState.value.isSubmitting) return
+        _uiState.update { it.copy(isSubmitting = true, formError = null) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isSubmitting = true, formError = null) }
             when (val result = deleteTransactionUseCase.execute(investmentId, transactionId)) {
                 is DeleteTransactionResult.Success -> saveEvents.send(result.investmentId)
                 is DeleteTransactionResult.BusinessError ->
@@ -133,7 +142,6 @@ class AddTransactionViewModel(
 
     private fun create(form: TransactionForm) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isSubmitting = true, formError = null) }
             when (val result = addTransactionUseCase.execute(investmentId, form)) {
                 is AddTransactionResult.Success -> saveEvents.send(result.investmentId)
                 is AddTransactionResult.Error -> {
@@ -150,7 +158,6 @@ class AddTransactionViewModel(
     private fun update(form: TransactionForm) {
         val transactionId = this.transactionId ?: return
         viewModelScope.launch {
-            _uiState.update { it.copy(isSubmitting = true, formError = null) }
             when (val result = updateTransactionUseCase.execute(investmentId, transactionId, form)) {
                 is UpdateTransactionResult.Success -> saveEvents.send(result.investmentId)
                 is UpdateTransactionResult.Error -> {

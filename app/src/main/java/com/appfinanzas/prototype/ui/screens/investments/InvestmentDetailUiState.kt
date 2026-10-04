@@ -7,6 +7,7 @@ import com.appfinanzas.prototype.ui.format.DateFormatter
 
 data class InvestmentDetailUiState(
     val isLoading: Boolean = false,
+    val isDeleting: Boolean = false,
     val name: String = "",
     val subtitle: String = "",
     val currentPrice: Double = 0.0,

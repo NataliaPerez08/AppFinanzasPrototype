@@ -41,11 +41,13 @@ class InvestmentDetailViewModel(
     fun retry() = load()
 
     fun delete() {
+        if (_uiState.value.isDeleting) return
+        _uiState.update { it.copy(isDeleting = true, error = null) }
         viewModelScope.launch {
             when (deleteInvestment.execute(investmentId)) {
                 is DeleteInvestmentResult.Success -> deleteEvents.send(Unit)
                 is DeleteInvestmentResult.BusinessError ->
-                    _uiState.update { it.copy(error = it.error ?: "No se pudo eliminar la inversión") }
+                    _uiState.update { it.copy(isDeleting = false, error = "No se pudo eliminar la inversión") }
             }
         }
     }

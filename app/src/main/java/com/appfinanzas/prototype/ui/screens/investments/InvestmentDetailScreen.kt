@@ -136,7 +136,7 @@ private fun InvestmentDetailContent(
         onNavigate(Routes.editInvestment(investmentId))
     }
     Spacer(Modifier.height(8.dp))
-    FinanceButton(text = "Eliminar inversión", onClick = onDelete)
+    FinanceButton(text = "Eliminar inversión", enabled = !state.isDeleting, onClick = onDelete)
     if (state.transactions.isNotEmpty()) {
         Spacer(Modifier.height(8.dp))
         FinancePanel {

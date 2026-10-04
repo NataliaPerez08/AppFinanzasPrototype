@@ -19,7 +19,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
@@ -46,10 +45,10 @@ class AddInvestmentViewModel(
         }
         if (investmentId != null) {
             viewModelScope.launch {
-                repository.observeInvestment(investmentId)
-                    .filterNotNull()
-                    .first()
-                    .let { investment ->
+                repository.observeInvestment(investmentId).first().let { investment ->
+                    if (investment == null) {
+                        _uiState.update { it.copy(formError = "No existe la inversión solicitada") }
+                    } else {
                         _uiState.update {
                             it.copy(
                                 type = investment.type,
@@ -60,6 +59,7 @@ class AddInvestmentViewModel(
                             )
                         }
                     }
+                }
             }
         }
     }
@@ -121,6 +121,7 @@ class AddInvestmentViewModel(
     fun submit() {
         val state = _uiState.value
         if (state.isSubmitting) return
+        _uiState.update { it.copy(isSubmitting = true, formError = null) }
         if (investmentId == null) submitCreate(state) else submitUpdate(state)
     }
 
@@ -135,7 +136,6 @@ class AddInvestmentViewModel(
             dateText = state.dateText,
         )
         viewModelScope.launch {
-            _uiState.update { it.copy(isSubmitting = true, formError = null) }
             when (val result = addInvestmentUseCase.execute(form)) {
                 is AddInvestmentResult.Success -> saveEvents.send(result.investmentId)
                 is AddInvestmentResult.Error -> {
@@ -157,7 +157,6 @@ class AddInvestmentViewModel(
             currency = state.currency,
         )
         viewModelScope.launch {
-            _uiState.update { it.copy(isSubmitting = true, formError = null) }
             when (val result = updateInvestmentUseCase.execute(investmentId!!, form)) {
                 is UpdateInvestmentResult.Success -> saveEvents.send(result.investmentId)
                 is UpdateInvestmentResult.Error -> {

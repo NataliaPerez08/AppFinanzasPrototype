@@ -7,7 +7,7 @@ integración del roadmap (`ROADMAP_UI_INTEGRATION.md`), verificado con código y
 
 | Métrica | Valor |
 |---|---|
-| Tests unitarios (JVM) | 159 / 159 |
+| Tests unitarios (JVM) | 163 / 163 |
 | Tests instrumentados (Android) | 24 / 24 |
 | Flujos E2E de aplicación | 5 (crear inversión, registrar compra, eliminar inversión, editar movimiento, eliminar movimiento) |
 | Migración Room 1 → 2 | Validada |
@@ -150,7 +150,11 @@ durante la validación QA de flujos. Los huecos que tocan integridad financiera 
 - [ ] Eliminar una inversión sin movimientos (los seeds siempre crean depósito inicial).
 - [ ] Back/cancelación en formularios desde UI instrumentada.
 - [ ] Recreación de Activity (dashboard, detalle, formularios).
-- [ ] Doble-Save / recomposición / re-entrada: falta verificar que no se dupliquen registros.
+- [x] Doble-Save: `AddInvestmentViewModelTest` y `AddTransactionViewModelTest` verifican
+      que dos envíos consecutivos solo persistan un registro. La recreación y re-entrada
+      de Activity siguen pendientes.
+- [x] IDs inexistentes en edición: inversión y movimiento muestran un error en lugar de
+      quedar esperando indefinidamente.
 - [ ] Propagación reactiva completa `DB → Flow → ViewModel → UI`: la emisión reactiva
       intermedia solo se asserta para una compra (`roomChangesPropagateThroughFlows`);
       edición y borrado ya tienen E2E de UI (`editTransaction_throughUi_updatesQuantity`,
@@ -174,7 +178,7 @@ durante la validación QA de flujos. Los huecos que tocan integridad financiera 
       recomputación de ledgers 269.3 ms.
 - [ ] Optimización basada en mediciones.
 
-> Nota: P0 cerrado y verificado ejecutando `:app:testDebugUnitTest` (159/159),
+> Nota: P0 cerrado y verificado ejecutando `:app:testDebugUnitTest` (163/163),
 > `:app:connectedDebugAndroidTest` (24/24) y `:app:lintDebug` sobre `Medium_Phone`
 > (API 37). P1/P2 siguen pendientes.
 

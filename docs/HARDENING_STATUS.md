@@ -197,9 +197,9 @@ durante la validación QA de flujos. Los huecos que tocan integridad financiera 
 
 > Nota: P0 cerrado y verificado ejecutando `:app:testDebugUnitTest` (175/175),
 > `:app:connectedDebugAndroidTest` (41/41) y `:app:lintDebug` sobre `moto g24 - 14`
-> (API 37). La conversión multi-moneda está implementada; falta repetir la suite
-> instrumentada con un dispositivo conectado después de este cambio. P2 de volumen
-> y rendimiento está cerrado según las mediciones registradas.
+> (API 37). La conversión multi-moneda está implementada y la suite posterior a FX
+> pasó `41/41` en AVD `test` (API 35). P2 de volumen y rendimiento está cerrado
+> según las mediciones registradas.
 
 ---
 

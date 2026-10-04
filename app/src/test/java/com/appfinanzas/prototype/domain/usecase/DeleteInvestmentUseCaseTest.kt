@@ -39,6 +39,19 @@ class DeleteInvestmentUseCaseTest {
     }
 
     @Test
+    fun `deletes investment without transactions`() = runTest {
+        val repo = TestInvestmentRepository(
+            investments = listOf(sampleInvestment(id = 1)),
+        )
+
+        val result = DeleteInvestmentUseCase(repo).execute(1)
+
+        assertTrue(result is DeleteInvestmentResult.Success)
+        assertTrue(repo.observeInvestments().first().isEmpty())
+        assertTrue(repo.observeTransactions(1).first().isEmpty())
+    }
+
+    @Test
     fun `unknown investment is a business error`() = runTest {
         val repo = TestInvestmentRepository(investments = listOf(sampleInvestment(id = 1)))
         val result = DeleteInvestmentUseCase(repo).execute(99)

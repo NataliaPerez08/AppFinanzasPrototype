@@ -149,7 +149,9 @@ durante la validación QA de flujos. Los huecos que tocan integridad financiera 
 
 - [x] Cancelar edición de inversión y cancelar el diálogo de borrado. Los formularios
       exponen `Cancelar` y la navegación vuelve mediante `popBackStack`.
-- [ ] Eliminar una inversión sin movimientos (los seeds siempre crean depósito inicial).
+- [x] Eliminar una inversión sin movimientos. Cubierto en
+      `DeleteInvestmentUseCaseTest`, `RoomInvestmentRepositoryTest` y
+      `InvestmentFlowIntegrationTest`.
 - [x] Back/cancelación en formularios desde UI instrumentada. `AppE2EFlowsTest` cubre
       cancelar nueva inversión, nuevo movimiento y diálogo de borrado.
 - [x] Recreación de Activity en dashboard: `recreatingActivity_preservesDashboardData`.

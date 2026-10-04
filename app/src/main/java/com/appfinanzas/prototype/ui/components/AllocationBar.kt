@@ -26,10 +26,11 @@ fun AllocationBar(
     items: List<AllocationItem>,
     modifier: Modifier = Modifier,
 ) {
-    val total = items.sumOf { it.percentage.toDouble() }.toFloat().coerceAtLeast(1f)
+    val visibleItems = items.filter { it.percentage.isFinite() && it.percentage > 0f }
+    val total = visibleItems.sumOf { it.percentage.toDouble() }.toFloat()
     Column(modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth().height(18.dp)) {
-            items.forEachIndexed { index, item ->
+            visibleItems.forEachIndexed { index, item ->
                 val weight = item.percentage / total
                 Box(
                     Modifier
@@ -45,7 +46,7 @@ fun AllocationBar(
                 )
             }
         }
-        items.forEach { item ->
+        visibleItems.forEach { item ->
             Row(
                 Modifier
                     .fillMaxWidth()

@@ -1,6 +1,9 @@
 package com.appfinanzas.prototype.flow
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.appfinanzas.prototype.domain.model.Currency
+import com.appfinanzas.prototype.domain.model.Investment
+import com.appfinanzas.prototype.domain.model.InvestmentType
 import com.appfinanzas.prototype.domain.model.TransactionType
 import com.appfinanzas.prototype.domain.usecase.AddTransactionResult
 import com.appfinanzas.prototype.domain.usecase.AddTransactionUseCase
@@ -96,6 +99,41 @@ class InvestmentFlowIntegrationTest {
         val summary = GetDashboardSummary(harness.repository).observe().first()
         assertEquals(0.0, summary.portfolioValue, 0.001)
         assertEquals(0, summary.investmentCount)
+    }
+
+    @Test
+    fun deleteInvestmentWithoutTransactions_removesInvestmentAndEmptiesDashboard() = runTest {
+        val institutionId = harness.seedInstitution()
+        val institution = harness.repository.observeInstitutions().first().single()
+        val id = harness.repository.saveInvestment(
+            Investment(
+                id = 0,
+                name = "Apple",
+                description = "Apple",
+                symbol = "AAPL",
+                type = InvestmentType.ACCION,
+                institution = institution.copy(id = institutionId),
+                currency = Currency.MXN,
+                currentPrice = 0.0,
+                priceChange = 0.0,
+                dailyChangePercentage = 0.0,
+                quantity = 0.0,
+                investedCapital = 0.0,
+                currentValue = 0.0,
+                dailyValueChange = 0.0,
+                returnPercentage = 0.0,
+                history = listOf(.5f, .5f),
+            ),
+        )
+
+        assertTrue(harness.repository.getTransactions(id).isEmpty())
+
+        val result = DeleteInvestmentUseCase(harness.repository).execute(id)
+
+        assertTrue(result is DeleteInvestmentResult.Success)
+        assertTrue(harness.repository.getInvestment(id) == null)
+        assertTrue(harness.repository.getTransactions(id).isEmpty())
+        assertEquals(0, GetDashboardSummary(harness.repository).observe().first().investmentCount)
     }
 
     @Test

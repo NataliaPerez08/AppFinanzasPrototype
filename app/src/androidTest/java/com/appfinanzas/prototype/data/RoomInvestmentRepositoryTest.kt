@@ -138,6 +138,20 @@ class RoomInvestmentRepositoryTest {
     }
 
     @Test
+    fun deletesInvestmentWithoutTransactions() = runTest {
+        val institutionId = repository.addInstitution(Institution(0, "GBM", "Casa de Bolsa"))
+        val institution = repository.observeInstitutions().first().single().copy(id = institutionId)
+        val id = repository.saveInvestment(investment(institution, quantity = 0.0, capital = 0.0))
+
+        assertTrue(repository.getTransactions(id).isEmpty())
+
+        repository.deleteInvestment(id)
+
+        assertNull(repository.getInvestment(id))
+        assertTrue(repository.getTransactions(id).isEmpty())
+    }
+
+    @Test
     fun updatesInvestmentPersistently() = runTest {
         val institutionId = repository.addInstitution(Institution(0, "GBM", "Casa de Bolsa"))
         val institution = repository.observeInstitutions().first().single().copy(id = institutionId)

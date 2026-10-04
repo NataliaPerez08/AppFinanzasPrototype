@@ -155,9 +155,9 @@ durante la validación QA de flujos. Los huecos que tocan integridad financiera 
 - [x] Back/cancelación en formularios desde UI instrumentada. `AppE2EFlowsTest` cubre
       cancelar nueva inversión, nuevo movimiento y diálogo de borrado.
 - [x] Recreación de Activity en dashboard: `recreatingActivity_preservesDashboardData`.
-- [x] Doble-Save: `AddInvestmentViewModelTest` y `AddTransactionViewModelTest` verifican
-      que dos envíos consecutivos solo persistan un registro. La recreación y re-entrada
-      de Activity siguen pendientes.
+- [x] Doble-Save y reentrada: `AddInvestmentViewModelTest` y `AddTransactionViewModelTest`
+      verifican envíos consecutivos; `AppE2EFlowsTest` verifica que los formularios de
+      inversión y movimiento conservan sus campos tras recrear la Activity.
 - [x] IDs inexistentes en edición: inversión y movimiento muestran un error en lugar de
       quedar esperando indefinidamente.
 - [x] Propagación reactiva `DB → Flow → Repository`: `roomChangesPropagateThroughFlows`,

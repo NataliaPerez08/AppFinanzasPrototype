@@ -8,6 +8,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.assertTextContains
 import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -181,6 +182,48 @@ class AppE2EFlowsTest {
 
         waitForText("VALOR ACTUAL")
         waitForText("\$10,000.00 MXN")
+    }
+
+    @Test
+    fun recreatingActivity_preservesNewInvestmentForm() {
+        waitForText("+ AGREGAR INVERSIÓN")
+        composeRule.onNodeWithText("+ AGREGAR INVERSIÓN").performClick()
+        waitForText("NUEVA INVERSIÓN")
+
+        clickScrolling("ACCIÓN")
+        clickScrolling("GBM")
+        typeInto("Símbolo / nombre", "Apple")
+        typeInto("Símbolo", "AAPL")
+        clickScrolling("MXN")
+        typeInto("Valor inicial", "10000")
+
+        composeRule.runOnUiThread { composeRule.activity.recreate() }
+
+        waitForText("NUEVA INVERSIÓN")
+        composeRule.onNodeWithContentDescription("Símbolo / nombre").assertTextContains("Apple")
+        composeRule.onNodeWithContentDescription("Símbolo").assertTextContains("AAPL")
+        composeRule.onNodeWithContentDescription("Valor inicial").assertTextContains("10000")
+    }
+
+    @Test
+    fun recreatingActivity_preservesNewTransactionForm() {
+        seedInvestment()
+
+        composeRule.onNodeWithText("INVERSIONES").performClick()
+        waitForText("APPLE")
+        composeRule.onNodeWithText("APPLE").performClick()
+        waitForText("REGISTRAR MOVIMIENTO")
+        clickScrolling("REGISTRAR MOVIMIENTO")
+        waitForText("REGISTRAR MOVIMIENTO")
+        clickScrolling("COMPRA")
+        typeInto("Cantidad", "2")
+        typeInto("Precio MXN", "100")
+
+        composeRule.runOnUiThread { composeRule.activity.recreate() }
+
+        waitForText("REGISTRAR MOVIMIENTO")
+        composeRule.onNodeWithContentDescription("Cantidad").assertTextContains("2")
+        composeRule.onNodeWithContentDescription("Precio MXN").assertTextContains("100")
     }
 
     private fun seedInvestment(): Long = runBlocking {

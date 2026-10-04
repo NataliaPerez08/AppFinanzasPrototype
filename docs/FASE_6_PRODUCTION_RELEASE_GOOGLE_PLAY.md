@@ -41,11 +41,11 @@ El proyecto todavía conserva algunos elementos de prototipo y requiere hardenin
 Configuración detectada actualmente:
 
 ```kotlin
-compileSdk = 35
-targetSdk = 35
+compileSdk = 36
+targetSdk = 36
 
 versionCode = 1
-versionName = "0.1-prototype"
+versionName = "1.0.0"
 ```
 
 Application ID anterior:
@@ -97,14 +97,14 @@ No actualizar dependencias innecesariamente si la versión actual ya es compatib
 
 ### Criterios de aceptación
 
-- [ ] `compileSdk = 36`.
-- [ ] `targetSdk = 36`.
-- [ ] El proyecto compila correctamente.
-- [ ] Todos los tests unitarios pasan.
-- [ ] Todos los tests instrumentados pasan.
+- [x] `compileSdk = 36`.
+- [x] `targetSdk = 36`.
+- [x] El proyecto compila correctamente.
+- [x] Todos los tests unitarios pasan.
+- [x] Todos los tests instrumentados pasan en AVD API 35; falta validación específica en API 36.
 - [ ] La aplicación inicia correctamente en Android 16.
 - [ ] No existen crashes relacionados con cambios de comportamiento de API 36.
-- [ ] Lint no contiene errores bloqueantes.
+- [x] Lint no contiene errores bloqueantes.
 
 ### Verificación
 
@@ -153,10 +153,10 @@ Actualizar:
 
 ### Criterios de aceptación
 
-- [ ] No aparece `prototype` en el Application ID final.
-- [ ] La aplicación compila después del cambio.
-- [ ] Tests pasan después del cambio.
-- [ ] No quedan referencias inválidas al package antiguo.
+- [x] No aparece `prototype` en el Application ID final.
+- [x] La aplicación compila después del cambio.
+- [x] Tests pasan después del cambio.
+- [x] No quedan referencias inválidas al package antiguo.
 - [ ] Se puede instalar la aplicación en un dispositivo limpio.
 
 ---
@@ -176,9 +176,9 @@ En caso de haber subido previamente builds a Play Console, usar un `versionCode`
 
 ### Criterios de aceptación
 
-- [ ] `versionName` no contiene `prototype`.
-- [ ] `versionCode` es válido y único.
-- [ ] La versión mostrada en la aplicación, si existe, coincide con la build.
+- [x] `versionName` no contiene `prototype`.
+- [x] `versionCode` es válido y único, pendiente de confirmar contra Play Console.
+- [x] La versión mostrada en la aplicación, si existe, coincide con la build.
 
 ---
 
@@ -215,11 +215,11 @@ Verificar especialmente:
 
 ### Criterios de aceptación
 
-- [ ] `assembleRelease` funciona.
-- [ ] `bundleRelease` funciona.
+- [x] `assembleRelease` funciona con firma externa de prueba.
+- [x] `bundleRelease` funciona con firma externa de prueba.
 - [ ] No existen crashes sólo presentes en release.
-- [ ] R8 no elimina clases necesarias.
-- [ ] Los recursos no utilizados pueden reducirse de forma segura.
+- [x] R8 no elimina clases necesarias en la build validada.
+- [x] Los recursos no utilizados pueden reducirse de forma segura en la build validada.
 - [ ] El bundle final abre correctamente tras instalación.
 
 ### Verificación
@@ -260,10 +260,10 @@ Activar Google Play App Signing al configurar la aplicación en Play Console.
 
 ### Criterios de aceptación
 
-- [ ] El repositorio no contiene secretos.
-- [ ] `.gitignore` protege archivos de firma.
-- [ ] El bundle de Release queda correctamente firmado.
-- [ ] Se documenta el procedimiento para regenerar una build firmada.
+- [x] El repositorio no contiene secretos.
+- [x] `.gitignore` protege archivos de firma.
+- [x] El bundle de Release queda correctamente firmado con credenciales externas de prueba.
+- [x] Se documenta el procedimiento para regenerar una build firmada.
 - [ ] El acceso al keystore está respaldado de forma segura.
 
 ---
@@ -1011,28 +1011,28 @@ No reemplazar silenciosamente builds.
 
 ## Build
 
-- [ ] API 36.
-- [ ] `targetSdk = 36`.
-- [ ] Application ID definitivo.
-- [ ] `versionName = 1.0.0`.
-- [ ] `versionCode` válido.
-- [ ] Release signing configurado.
-- [ ] R8 habilitado.
-- [ ] Resource shrinking habilitado.
-- [ ] `bundleRelease` pasa.
+- [x] API 36 configurada.
+- [x] `targetSdk = 36`.
+- [x] Application ID definitivo.
+- [x] `versionName = 1.0.0`.
+- [x] `versionCode` válido.
+- [x] Release signing configurado mediante propiedades/variables externas.
+- [x] R8 habilitado.
+- [x] Resource shrinking habilitado.
+- [x] `bundleRelease` pasa con firma externa de prueba.
 
 ## Tests
 
-- [ ] Unit tests.
-- [ ] Instrumented tests.
-- [ ] E2E.
-- [ ] Migration tests.
-- [ ] Lifecycle tests.
-- [ ] Back/Cancel.
-- [ ] operaciones históricas.
+- [x] Unit tests.
+- [x] Instrumented tests en API 35.
+- [x] E2E.
+- [x] Migration tests.
+- [x] Lifecycle tests.
+- [x] Back/Cancel.
+- [x] operaciones históricas.
 - [ ] clean install.
 - [ ] upgrade.
-- [ ] stress dataset.
+- [x] stress dataset.
 - [ ] API 26.
 - [ ] API 36.
 
@@ -1048,11 +1048,11 @@ No reemplazar silenciosamente builds.
 
 ## Seguridad
 
-- [ ] Sin secrets en Git.
-- [ ] Sin keystore en Git.
-- [ ] Sin passwords hardcoded.
-- [ ] política de backups definida.
-- [ ] permisos revisados.
+- [x] Sin secrets en Git.
+- [x] Sin keystore en Git.
+- [x] Sin passwords hardcoded.
+- [x] política de backups definida.
+- [x] permisos revisados.
 - [ ] dependencias revisadas.
 
 ## Google Play

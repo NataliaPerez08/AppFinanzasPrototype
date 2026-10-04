@@ -24,13 +24,13 @@ val releaseKeyPassword = signingValue("keyPassword", "PULSO_KEY_PASSWORD")
 
 android {
     namespace = "com.pulso.patrimonio"
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         applicationId = "com.pulso.patrimonio"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
-        versionName = "0.1-prototype"
+        versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { compose = true }
@@ -45,6 +45,12 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
     lint {

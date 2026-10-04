@@ -193,6 +193,7 @@ durante la validación QA de flujos. Los huecos que tocan integridad financiera 
 - [x] Optimización basada en mediciones. Los tiempos medidos están por debajo de los
       umbrales definidos y no justifican cambios especulativos en Room, Flow o el
       cálculo del ledger. Se conserva la implementación actual como baseline.
+      `assembleRelease` y `bundleRelease` también pasan después de la integración FX.
 
 > Nota: P0 cerrado y verificado ejecutando `:app:testDebugUnitTest` (175/175),
 > `:app:connectedDebugAndroidTest` (41/41) y `:app:lintDebug` sobre `moto g24 - 14`

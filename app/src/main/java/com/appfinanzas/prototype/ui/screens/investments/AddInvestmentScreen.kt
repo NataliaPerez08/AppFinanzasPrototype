@@ -37,6 +37,7 @@ private val currencyOptions = Currency.entries.map { FinanceOption(value = it.na
 fun AddInvestmentScreen(
     investmentId: Long? = null,
     onNavigate: (String) -> Unit,
+    onBack: () -> Unit = {},
 ) {
     val viewModel: AddInvestmentViewModel = viewModel(factory = AddInvestmentViewModel.factory(investmentId))
     val state by viewModel.uiState.collectAsState()
@@ -106,6 +107,12 @@ fun AddInvestmentScreen(
             text = if (state.isEditing) "Guardar cambios" else "Guardar inversión",
             enabled = !state.isSubmitting,
             onClick = viewModel::submit,
+        )
+        Spacer(Modifier.height(8.dp))
+        FinanceButton(
+            text = "Cancelar",
+            enabled = !state.isSubmitting,
+            onClick = onBack,
         )
     }
 }

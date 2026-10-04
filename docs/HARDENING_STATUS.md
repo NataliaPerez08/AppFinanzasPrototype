@@ -146,9 +146,11 @@ durante la validación QA de flujos. Los huecos que tocan integridad financiera 
 
 ### P1 — flujos y estados
 
-- [ ] Cancelar edición de inversión y cancelar el diálogo de borrado.
+- [x] Cancelar edición de inversión y cancelar el diálogo de borrado. Los formularios
+      exponen `Cancelar` y la navegación vuelve mediante `popBackStack`.
 - [ ] Eliminar una inversión sin movimientos (los seeds siempre crean depósito inicial).
-- [ ] Back/cancelación en formularios desde UI instrumentada.
+- [ ] Back/cancelación en formularios desde UI instrumentada. La acción está implementada;
+      falta la aserción específica en dispositivo.
 - [ ] Recreación de Activity (dashboard, detalle, formularios).
 - [x] Doble-Save: `AddInvestmentViewModelTest` y `AddTransactionViewModelTest` verifican
       que dos envíos consecutivos solo persistan un registro. La recreación y re-entrada

@@ -52,7 +52,10 @@ fun FinanzasApp() {
                     )
                 }
                 composable(Routes.ADD_INVESTMENT) {
-                    AddInvestmentScreen(onNavigate = navController::navigate)
+                    AddInvestmentScreen(
+                        onNavigate = navController::navigate,
+                        onBack = navController::popBackStack,
+                    )
                 }
                 composable(
                     route = Routes.EDIT_INVESTMENT,
@@ -64,6 +67,7 @@ fun FinanzasApp() {
                     AddInvestmentScreen(
                         investmentId = investmentId,
                         onNavigate = navController::navigate,
+                        onBack = navController::popBackStack,
                     )
                 }
                 composable(
@@ -76,6 +80,7 @@ fun FinanzasApp() {
                     AddTransactionScreen(
                         investmentId = investmentId,
                         onNavigate = navController::navigate,
+                        onBack = navController::popBackStack,
                     )
                 }
                 composable(
@@ -91,6 +96,7 @@ fun FinanzasApp() {
                         investmentId = investmentId,
                         transactionId = transactionId,
                         onNavigate = navController::navigate,
+                        onBack = navController::popBackStack,
                     )
                 }
                 composable(Routes.PORTFOLIO) {

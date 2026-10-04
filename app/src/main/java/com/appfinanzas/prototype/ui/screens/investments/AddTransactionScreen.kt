@@ -43,6 +43,7 @@ fun AddTransactionScreen(
     investmentId: Long,
     onNavigate: (String) -> Unit,
     transactionId: Long? = null,
+    onBack: () -> Unit = {},
 ) {
     val viewModel: AddTransactionViewModel =
         viewModel(factory = AddTransactionViewModel.factory(investmentId, transactionId))
@@ -117,6 +118,12 @@ fun AddTransactionScreen(
             text = if (state.isEditing) "Guardar cambios" else "Guardar movimiento",
             enabled = !state.isSubmitting,
             onClick = viewModel::submit,
+        )
+        Spacer(Modifier.height(8.dp))
+        FinanceButton(
+            text = "Cancelar",
+            enabled = !state.isSubmitting,
+            onClick = onBack,
         )
         if (state.isEditing) {
             Spacer(Modifier.height(8.dp))

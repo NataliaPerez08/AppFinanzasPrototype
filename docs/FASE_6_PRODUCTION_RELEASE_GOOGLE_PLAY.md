@@ -220,7 +220,8 @@ Verificar especialmente:
 - [ ] No existen crashes sólo presentes en release.
 - [x] R8 no elimina clases necesarias en la build validada.
 - [x] Los recursos no utilizados pueden reducirse de forma segura en la build validada.
-- [ ] El bundle final abre correctamente tras instalación.
+- [x] El APK release firmado se instaló y abrió correctamente con
+      `com.pulso.patrimonio/com.appfinanzas.prototype.MainActivity`.
 
 ### Verificación
 
@@ -293,9 +294,9 @@ Validar:
 
 ### Criterios de aceptación
 
-- [ ] La APK/AAB de Release puede instalarse.
-- [ ] No existen crashes.
-- [ ] No existen ANRs.
+- [x] La APK release puede instalarse.
+- [x] No existen crashes durante el arranque validado.
+- [x] No existen ANRs durante el arranque validado.
 - [ ] Los cálculos coinciden con Debug.
 - [ ] Persistencia funciona correctamente.
 - [ ] Navegación funciona correctamente.

@@ -84,4 +84,35 @@ class ProjectionCalculatorTest {
 
         assertTrue(ProjectionCalculator.monthlySeries(0.0, 12.0).isEmpty())
     }
+
+    @Test
+    fun `negative return and inflation remain finite`() {
+        val result = ProjectionCalculator.project(
+            currentValue = 1_000.0,
+            expectedReturn = -5.0,
+            inflation = -2.0,
+            isr = 0.0,
+            years = 5,
+        )
+
+        assertTrue(result.nominal.isFinite())
+        assertTrue(result.afterIsr.isFinite())
+        assertTrue(result.real.isFinite())
+        assertTrue(result.scenarios.all { it.nominal.isFinite() && it.afterIsr.isFinite() && it.real.isFinite() })
+    }
+
+    @Test
+    fun `invalid projection inputs do not produce non finite values`() {
+        val result = ProjectionCalculator.project(
+            currentValue = 1_000.0,
+            expectedReturn = 8.0,
+            inflation = -100.0,
+            isr = 2.0,
+        )
+
+        assertTrue(result.nominal.isFinite())
+        assertTrue(result.afterIsr.isFinite())
+        assertTrue(result.real.isFinite())
+        assertTrue(ProjectionCalculator.monthlySeries(1_000.0, 8.0, months = 0).isEmpty())
+    }
 }

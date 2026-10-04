@@ -84,6 +84,21 @@ class GetPortfolioSummaryTest {
     }
 
     @Test
+    fun `every allocation dimension reconciles to portfolio value`() = runTest {
+        val summary = useCase.summarize(
+            listOf(
+                sampleInvestment(id = 1, currentValue = 100.0),
+                sampleInvestment(id = 2, name = "CETES", type = InvestmentType.CETES, currentValue = 200.0),
+                sampleInvestment(id = 3, name = "NU", institution = Institution(3, "NU", "SOFIPO"), currentValue = 300.0),
+            ),
+        )
+
+        assertEquals(summary.portfolioValue, summary.byCategory.sumOf { it.value }, 0.001)
+        assertEquals(summary.portfolioValue, summary.byInstitution.sumOf { it.value }, 0.001)
+        assertEquals(summary.portfolioValue, summary.byCurrency.sumOf { it.value }, 0.001)
+    }
+
+    @Test
     fun `aportacion no se contabiliza como rendimiento`() = runTest {
         val summary = useCase.summarize(
             listOf(

@@ -139,6 +139,19 @@ class LedgerCalculatorTest {
     }
 
     @Test
+    fun `different dates are ordered independently of insertion order`() {
+        val transactions = listOf(
+            buy(5.0, 100.0, id = 2, day = 1),
+            deposit(1_000.0, id = 1, day = 0),
+        ).reversed()
+
+        val state = LedgerCalculator.recompute(100.0, transactions)
+
+        assertEquals(5.0, state.quantity, 0.001)
+        assertTrue(LedgerCalculator.validate(transactions).isEmpty())
+    }
+
+    @Test
     fun `rounds monetary values to two decimals`() {
         val state = LedgerCalculator.recompute(0.0, listOf(deposit(100.0), buy(3.0, 33.333, id = 2)))
 

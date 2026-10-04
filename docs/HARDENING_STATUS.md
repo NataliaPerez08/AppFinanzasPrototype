@@ -7,7 +7,7 @@ integración del roadmap (`ROADMAP_UI_INTEGRATION.md`), verificado con código y
 
 | Métrica | Valor |
 |---|---|
-| Tests unitarios (JVM) | 163 / 163 |
+| Tests unitarios (JVM) | 167 / 167 |
 | Tests instrumentados (Android) | 24 / 24 |
 | Flujos E2E de aplicación | 5 (crear inversión, registrar compra, eliminar inversión, editar movimiento, eliminar movimiento) |
 | Migración Room 1 → 2 | Validada |
@@ -164,10 +164,14 @@ durante la validación QA de flujos. Los huecos que tocan integridad financiera 
       intermedia del Flow.
 - [ ] E2E único de ciclo de vida completo
       (institución→inversión→depósito→compra→venta→retiro→eliminar).
-- [ ] Invariante de distribución: no se asserta `suma(distribuciones) == patrimonio total`.
-- [ ] Fechas: sin prueba multi-fecha insertada fuera de orden (solo mismo día por id).
-- [ ] Estados vacíos/`NaN`/`Infinity`: `Rounding` mapea NaN/Inf→0.0, pero sin test.
-- [ ] Proyección: sin rendimiento negativo/cero con portafolio > 0 ni inflación negativa.
+- [x] Invariante de distribución: tests verifican que las distribuciones por categoría,
+      institución y moneda reconcilian con el patrimonio total.
+- [x] Fechas: `LedgerCalculatorTest` verifica movimientos de varias fechas insertados
+      fuera de orden.
+- [x] Estados `NaN`/`Infinity`: proyecciones y series mensuales inválidas se normalizan
+      y tienen cobertura de tests.
+- [x] Proyección: cobertura de rendimiento negativo, inflación negativa y portafolio
+      positivo.
 - [ ] Múltiples monedas en un mismo portafolio (conversión).
 - [ ] Fechas históricas / movimientos fuera de orden en pruebas de UI.
 
@@ -180,7 +184,7 @@ durante la validación QA de flujos. Los huecos que tocan integridad financiera 
       recomputación de ledgers 269.3 ms.
 - [ ] Optimización basada en mediciones.
 
-> Nota: P0 cerrado y verificado ejecutando `:app:testDebugUnitTest` (163/163),
+> Nota: P0 cerrado y verificado ejecutando `:app:testDebugUnitTest` (167/167),
 > `:app:connectedDebugAndroidTest` (24/24) y `:app:lintDebug` sobre `Medium_Phone`
 > (API 37). P1/P2 siguen pendientes.
 

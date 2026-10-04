@@ -18,10 +18,10 @@ object ProjectionCalculator {
         val afterIsr = nominal * (1.0 - isr / 100.0).pow(years)
         val real = afterIsr / (1.0 + inflation / 100.0).pow(years)
         return ProjectionResult(
-            currentValue = currentValue,
-            nominal = nominal,
-            afterIsr = afterIsr,
-            real = real,
+            currentValue = currentValue.finiteOrZero(),
+            nominal = nominal.finiteOrZero(),
+            afterIsr = afterIsr.finiteOrZero(),
+            real = real.finiteOrZero(),
             scenarios = scenarios(currentValue, expectedReturn, inflation, isr, years),
         )
     }
@@ -47,9 +47,9 @@ object ProjectionCalculator {
                 expectedReturn = scenarioReturn,
                 inflation = scenarioInflation,
                 isr = isr,
-                nominal = nominal,
-                afterIsr = afterIsr,
-                real = real,
+                nominal = nominal.finiteOrZero(),
+                afterIsr = afterIsr.finiteOrZero(),
+                real = real.finiteOrZero(),
             )
         }
     }
@@ -59,7 +59,7 @@ object ProjectionCalculator {
         expectedReturn: Double,
         months: Int = 12,
     ): List<Float> {
-        if (currentValue <= 0.0) return emptyList()
+        if (currentValue <= 0.0 || !currentValue.isFinite() || months <= 0) return emptyList()
         val monthlyRate = (expectedReturn / 100.0) / months
         val values = (0..months).map { currentValue * (1.0 + monthlyRate * it) }
         val min = values.min()
@@ -69,4 +69,6 @@ object ProjectionCalculator {
             (0.9 - progress * 0.8).toFloat()
         }
     }
+
+    private fun Double.finiteOrZero(): Double = takeIf { isFinite() } ?: 0.0
 }

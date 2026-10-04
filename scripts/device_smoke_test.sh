@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PACKAGE="com.appfinanzas.prototype"
+PACKAGE="com.pulso.patrimonio"
 ACTIVITY="${PACKAGE}/.MainActivity"
 RESULTS_DIR="${ROOT_DIR}/build/device-test-results/$(date +%Y%m%d-%H%M%S)"
 ADB=(adb)

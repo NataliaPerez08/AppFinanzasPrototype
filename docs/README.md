@@ -63,3 +63,4 @@ Todos los documentos viven en `docs/`.
 - `HARDENING_PLAN.md` — plan de hardening.
 - `HARDENING_STATUS.md` — estado de cumplimiento, pendientes y huecos de cobertura.
 - `FASE_6_PRODUCTION_RELEASE_GOOGLE_PLAY.md` — plan de release 1.0 y Google Play.
+- `RELEASE_SIGNING.md` — configuración segura de firma de producción.

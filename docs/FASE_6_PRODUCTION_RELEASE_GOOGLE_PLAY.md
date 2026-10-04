@@ -48,13 +48,22 @@ versionCode = 1
 versionName = "0.1-prototype"
 ```
 
-Application ID actual:
+Application ID anterior:
 
 ```text
 com.appfinanzas.prototype
 ```
 
-Esto debe considerarse configuración de desarrollo y no de producción.
+Application ID de producción definido:
+
+```text
+com.pulso.patrimonio
+```
+
+Los paquetes Kotlin internos `com.appfinanzas.prototype` se conservan para evitar
+un refactor de código sin impacto en el identificador Android. El `namespace`, el
+`applicationId`, el Manifest, el smoke test y las referencias a `R` usan ya el ID
+de producción.
 
 ---
 
@@ -110,11 +119,13 @@ No actualizar dependencias innecesariamente si la versión actual ya es compatib
 
 ## P0.2 — Definir Application ID definitivo
 
-El Application ID actual contiene:
+El Application ID anterior contenía:
 
 ```text
 com.appfinanzas.prototype
 ```
+
+El Application ID definitivo es `com.pulso.patrimonio`.
 
 No publicar la aplicación con un package que incluya `prototype`.
 

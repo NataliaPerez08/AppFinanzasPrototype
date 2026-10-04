@@ -17,7 +17,7 @@ import com.appfinanzas.prototype.ui.components.FinancePanel
 import com.appfinanzas.prototype.ui.components.FinanceScreen
 import com.appfinanzas.prototype.ui.navigation.Routes
 import com.appfinanzas.prototype.ui.theme.FinanzasColors
-import com.appfinanzas.prototype.R
+import com.pulso.patrimonio.R
 
 @Composable
 fun MoreScreen(onNavigate: (String) -> Unit) {

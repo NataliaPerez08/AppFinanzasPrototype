@@ -5,11 +5,28 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+import java.io.FileInputStream
+import java.util.Properties
+
+val signingProperties = Properties()
+val signingPropertiesFile = rootProject.file("keystore.properties")
+if (signingPropertiesFile.isFile) {
+    FileInputStream(signingPropertiesFile).use(signingProperties::load)
+}
+
+fun signingValue(property: String, environment: String): String? =
+    signingProperties.getProperty(property) ?: System.getenv(environment)
+
+val releaseStoreFile = signingValue("storeFile", "PULSO_KEYSTORE_FILE")
+val releaseStorePassword = signingValue("storePassword", "PULSO_KEYSTORE_PASSWORD")
+val releaseKeyAlias = signingValue("keyAlias", "PULSO_KEY_ALIAS")
+val releaseKeyPassword = signingValue("keyPassword", "PULSO_KEY_PASSWORD")
+
 android {
-    namespace = "com.appfinanzas.prototype"
+    namespace = "com.pulso.patrimonio"
     compileSdk = 35
     defaultConfig {
-        applicationId = "com.appfinanzas.prototype"
+        applicationId = "com.pulso.patrimonio"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
@@ -17,6 +34,19 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { compose = true }
+    signingConfigs {
+        create("release") {
+            if (releaseStoreFile != null) storeFile = rootProject.file(releaseStoreFile)
+            if (releaseStorePassword != null) storePassword = releaseStorePassword
+            if (releaseKeyAlias != null) keyAlias = releaseKeyAlias
+            if (releaseKeyPassword != null) keyPassword = releaseKeyPassword
+        }
+    }
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.getByName("release")
+        }
+    }
     lint {
         disable += "GradleDependency"
     }

@@ -1,7 +1,7 @@
 # Hardening — PULSO
 
-> Estado de cumplimiento verificado en `HARDENING_STATUS.md` (P0 completado,
-> P1/P2 pendientes).
+> Estado de cumplimiento verificado en `HARDENING_STATUS.md` (flujos P0
+> implementados; persistencia real tras reinicio y cobertura P1/P2 pendientes).
 
 ## Objetivo
 

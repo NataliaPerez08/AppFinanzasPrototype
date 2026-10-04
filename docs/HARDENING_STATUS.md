@@ -20,8 +20,9 @@ integración del roadmap (`ROADMAP_UI_INTEGRATION.md`), verificado con código y
 
 ## Definition of Done — Hardening
 
-> Nota: "P0" aquí significa que el flujo existe y funciona en el camino feliz; la
-> cobertura de casos límite se detalla en «Pendientes y huecos de cobertura».
+> Nota: "P0" aquí significa que el flujo existe y funciona en el camino feliz. La
+> persistencia tras reinicio real de la app sigue pendiente; la cobertura de casos
+> límite se detalla en «Pendientes y huecos de cobertura».
 
 - [x] **Flujos P0 implementados (camino feliz).** Ledger, venta, retiro,
       editar/eliminar inversión y movimientos, atomicidad y validaciones.
@@ -34,7 +35,7 @@ integración del roadmap (`ROADMAP_UI_INTEGRATION.md`), verificado con código y
       ventas parcial/total/inválida en instrumentado (`InvestmentFlowIntegrationTest`) y
       edición/borrado de movimientos desde UI (`AddTransactionViewModelTest`,
       `AppE2EFlowsTest`).
-- [x] **Flujos existentes sin regresiones.** 159 unit + 24 instrumentados en verde.
+- [x] **Flujos existentes sin regresiones.** 167 unit + 33 instrumentados en verde.
 - [x] **Operaciones inválidas rechazadas antes de persistir.**
       `LedgerCalculator.validate`, `TransactionFormValidator`, `InvestmentFormValidator`.
 - [x] **Sin posiciones negativas.** Invariantes de `LedgerCalculator` + `LedgerCalculatorTest`.

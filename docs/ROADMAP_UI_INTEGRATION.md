@@ -886,28 +886,28 @@ Eliminar:
 
 Las fases 1–5 se consideran integradas cuando:
 
-- [ ] El proyecto compila.
-- [ ] Los tests existentes pasan.
-- [ ] La nueva UI está integrada.
-- [ ] Dashboard utiliza datos reales.
-- [ ] Inversiones utiliza datos reales.
-- [ ] Detalle utiliza datos reales.
-- [ ] Se pueden crear inversiones.
-- [ ] Se pueden registrar movimientos.
-- [ ] Los cambios actualizan automáticamente el patrimonio.
-- [ ] Patrimonio muestra agregaciones reales.
-- [ ] Proyección utiliza el motor financiero.
-- [ ] Inflación e ISR están separados del rendimiento nominal.
-- [ ] Instituciones son configurables.
-- [ ] No existen cifras financieras hardcodeadas en producción.
-- [ ] Los Composables no contienen lógica financiera.
-- [ ] Room no es accedido directamente desde UI.
-- [ ] Loading, Empty y Error están implementados.
-- [ ] Formato monetario está centralizado.
-- [ ] Formato porcentual está centralizado.
-- [ ] Navegación utiliza IDs.
-- [ ] El sistema visual es consistente.
-- [ ] La aplicación mantiene una base preparada para crecer más allá del uso personal.
+- [x] El proyecto compila.
+- [x] Los tests existentes pasan.
+- [x] La nueva UI está integrada.
+- [x] Dashboard utiliza datos reales.
+- [x] Inversiones utiliza datos reales.
+- [x] Detalle utiliza datos reales.
+- [x] Se pueden crear inversiones.
+- [x] Se pueden registrar movimientos.
+- [x] Los cambios actualizan automáticamente el patrimonio.
+- [x] Patrimonio muestra agregaciones reales.
+- [x] Proyección utiliza el motor financiero.
+- [x] Inflación e ISR están separados del rendimiento nominal.
+- [x] Instituciones son configurables.
+- [x] No existen cifras financieras hardcodeadas en producción.
+- [x] Los Composables no contienen lógica financiera.
+- [x] Room no es accedido directamente desde UI.
+- [x] Loading, Empty y Error están implementados.
+- [x] Formato monetario está centralizado.
+- [x] Formato porcentual está centralizado.
+- [x] Navegación utiliza IDs.
+- [x] El sistema visual es consistente.
+- [x] La aplicación mantiene una base preparada para crecer más allá del uso personal.
 
 ---
 

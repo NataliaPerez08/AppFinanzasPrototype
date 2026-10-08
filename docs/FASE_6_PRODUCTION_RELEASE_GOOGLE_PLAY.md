@@ -177,7 +177,7 @@ En caso de haber subido previamente builds a Play Console, usar un `versionCode`
 ### Criterios de aceptación
 
 - [x] `versionName` no contiene `prototype`.
-- [x] `versionCode` confirmado contra Play Console (1 ya utilizado; actual = 2).
+- [x] `versionCode` confirmado contra Play Console (1 y 2 ya utilizados; actual = 100, con margen para iteraciones de testing).
 - [x] La versión mostrada en la aplicación, si existe, coincide con la build.
 
 ---

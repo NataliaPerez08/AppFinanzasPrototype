@@ -2,11 +2,14 @@ package com.appfinanzas.prototype.data.mapper
 
 import com.appfinanzas.prototype.data.local.entity.InstitutionEntity
 import com.appfinanzas.prototype.data.local.entity.InvestmentEntity
+import com.appfinanzas.prototype.data.local.entity.PricePointEntity
 import com.appfinanzas.prototype.data.local.entity.TransactionEntity
 import com.appfinanzas.prototype.domain.model.Currency
 import com.appfinanzas.prototype.domain.model.Institution
 import com.appfinanzas.prototype.domain.model.Investment
 import com.appfinanzas.prototype.domain.model.InvestmentType
+import com.appfinanzas.prototype.domain.model.PricePoint
+import com.appfinanzas.prototype.domain.model.ProjectionStrategy
 import com.appfinanzas.prototype.domain.model.Transaction
 import com.appfinanzas.prototype.domain.model.TransactionType
 import java.time.LocalDate
@@ -50,6 +53,11 @@ object InvestmentMapper {
             cashBalance = entity.cashBalance,
             averageCost = entity.averageCost,
             realizedProfit = entity.realizedProfit,
+            projectionStrategy = entity.projectionStrategy?.let {
+                runCatching { ProjectionStrategy.valueOf(it) }.getOrNull()
+            },
+            projectionReturn = entity.projectionReturn,
+            projectionVolatility = entity.projectionVolatility,
         )
 
     fun toEntity(domain: Investment): InvestmentEntity =
@@ -73,6 +81,9 @@ object InvestmentMapper {
             cashBalance = domain.cashBalance,
             averageCost = domain.averageCost,
             realizedProfit = domain.realizedProfit,
+            projectionStrategy = domain.projectionStrategy?.name,
+            projectionReturn = domain.projectionReturn,
+            projectionVolatility = domain.projectionVolatility,
         )
 }
 
@@ -101,5 +112,23 @@ object TransactionMapper {
             commission = domain.commission,
             total = domain.total,
             currency = domain.currency.name,
+        )
+}
+
+object PricePointMapper {
+    fun toDomain(entity: PricePointEntity): PricePoint =
+        PricePoint(
+            id = entity.id,
+            investmentId = entity.investmentId,
+            date = LocalDate.ofEpochDay(entity.dateEpochDay),
+            price = entity.price,
+        )
+
+    fun toEntity(domain: PricePoint): PricePointEntity =
+        PricePointEntity(
+            id = domain.id,
+            investmentId = domain.investmentId,
+            dateEpochDay = domain.date.toEpochDay(),
+            price = domain.price,
         )
 }

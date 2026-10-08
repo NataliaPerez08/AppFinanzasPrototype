@@ -7,6 +7,8 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.appfinanzas.prototype.di.AppContainer
 import com.appfinanzas.prototype.domain.model.Currency
 import com.appfinanzas.prototype.domain.model.InvestmentType
+import com.appfinanzas.prototype.domain.model.ProjectionStrategy
+import com.appfinanzas.prototype.domain.projection.ProjectionStrategyResolver
 import com.appfinanzas.prototype.domain.repository.InvestmentRepository
 import com.appfinanzas.prototype.domain.usecase.AddInvestmentResult
 import com.appfinanzas.prototype.domain.usecase.AddInvestmentUseCase
@@ -56,6 +58,10 @@ class AddInvestmentViewModel(
                                 name = investment.name,
                                 symbol = investment.symbol,
                                 currency = investment.currency,
+                                projectionStrategy = investment.projectionStrategy,
+                                projectionReturnText = investment.projectionReturn?.toString().orEmpty(),
+                                projectionVolatilityText = investment.projectionVolatility?.toString().orEmpty(),
+                                recommendedStrategyLabel = ProjectionStrategyResolver.resolve(investment.type).label,
                             )
                         }
                     }
@@ -65,10 +71,39 @@ class AddInvestmentViewModel(
     }
 
     fun onTypeSelected(value: String) {
+        val type = InvestmentType.valueOf(value)
         _uiState.update {
             it.copy(
-                type = InvestmentType.valueOf(value),
+                type = type,
+                recommendedStrategyLabel = ProjectionStrategyResolver.resolve(type).label,
                 fieldErrors = it.fieldErrors - InvestmentFormValidator.FIELD_TYPE,
+            )
+        }
+    }
+
+    fun onProjectionStrategySelected(value: String) {
+        _uiState.update {
+            it.copy(
+                projectionStrategy = if (value == STRATEGY_AUTOMATIC) null else ProjectionStrategy.valueOf(value),
+                fieldErrors = it.fieldErrors - InvestmentFormValidator.FIELD_PROJECTION_RETURN,
+            )
+        }
+    }
+
+    fun onProjectionReturnChange(value: String) {
+        _uiState.update {
+            it.copy(
+                projectionReturnText = value,
+                fieldErrors = it.fieldErrors - InvestmentFormValidator.FIELD_PROJECTION_RETURN,
+            )
+        }
+    }
+
+    fun onProjectionVolatilityChange(value: String) {
+        _uiState.update {
+            it.copy(
+                projectionVolatilityText = value,
+                fieldErrors = it.fieldErrors - InvestmentFormValidator.FIELD_PROJECTION_VOLATILITY,
             )
         }
     }
@@ -134,6 +169,9 @@ class AddInvestmentViewModel(
             currency = state.currency,
             initialValueText = state.initialValueText,
             dateText = state.dateText,
+            projectionStrategy = state.projectionStrategy,
+            projectionReturnText = state.projectionReturnText,
+            projectionVolatilityText = state.projectionVolatilityText,
         )
         viewModelScope.launch {
             when (val result = addInvestmentUseCase.execute(form)) {
@@ -155,6 +193,9 @@ class AddInvestmentViewModel(
             name = state.name,
             symbol = state.symbol,
             currency = state.currency,
+            projectionStrategy = state.projectionStrategy,
+            projectionReturnText = state.projectionReturnText,
+            projectionVolatilityText = state.projectionVolatilityText,
         )
         viewModelScope.launch {
             when (val result = updateInvestmentUseCase.execute(investmentId!!, form)) {
@@ -170,6 +211,8 @@ class AddInvestmentViewModel(
     }
 
     companion object {
+        const val STRATEGY_AUTOMATIC = "AUTOMATIC"
+
         fun factory(investmentId: Long? = null): androidx.lifecycle.ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 AddInvestmentViewModel(

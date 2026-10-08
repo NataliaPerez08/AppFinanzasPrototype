@@ -3,6 +3,7 @@ package com.appfinanzas.prototype.ui.screens.investments
 import com.appfinanzas.prototype.data.TestInvestmentRepository
 import com.appfinanzas.prototype.domain.model.Currency
 import com.appfinanzas.prototype.domain.model.InvestmentType
+import com.appfinanzas.prototype.domain.model.ProjectionStrategy
 import com.appfinanzas.prototype.domain.usecase.AddInvestmentUseCase
 import com.appfinanzas.prototype.domain.usecase.UpdateInvestmentUseCase
 import kotlinx.coroutines.Dispatchers
@@ -104,6 +105,30 @@ class AddInvestmentViewModelTest {
         val savedId = viewModel.savedEvents.first()
         assertTrue(savedId > 0)
         assertNotNull(repo.observeInvestments().first().firstOrNull { it.id == savedId })
+    }
+
+    @Test
+    fun `projection strategy selection flows into the saved investment`() = runTest {
+        val repo = TestInvestmentRepository()
+        val viewModel = viewModel(repo)
+        advanceUntilIdle()
+
+        viewModel.onTypeSelected(InvestmentType.ACCION.name)
+        viewModel.onInstitutionSelected("1")
+        viewModel.onNameChange("Apple")
+        viewModel.onSymbolChange("AAPL")
+        viewModel.onCurrencySelected(Currency.USD.name)
+        viewModel.onInitialValueChange("10000")
+        viewModel.onDateChange("21/09/2026")
+        viewModel.onProjectionStrategySelected(ProjectionStrategy.MANUAL.name)
+        viewModel.onProjectionReturnChange("12")
+        viewModel.submit()
+        advanceUntilIdle()
+
+        val savedId = viewModel.savedEvents.first()
+        val saved = repo.observeInvestments().first().first { it.id == savedId }
+        assertEquals(ProjectionStrategy.MANUAL, saved.projectionStrategy)
+        assertEquals(12.0, saved.projectionReturn!!, 0.001)
     }
 
     @Test

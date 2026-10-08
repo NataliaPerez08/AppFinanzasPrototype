@@ -2,7 +2,6 @@ package com.appfinanzas.prototype.ui.screens.investments
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -12,8 +11,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.appfinanzas.prototype.domain.model.Currency
 import com.appfinanzas.prototype.domain.model.InvestmentType
+import com.appfinanzas.prototype.domain.model.ProjectionStrategy
 import com.appfinanzas.prototype.ui.components.FinanceButton
 import com.appfinanzas.prototype.ui.components.FinanceErrorText
+import com.appfinanzas.prototype.ui.components.FinanceLabel
 import com.appfinanzas.prototype.ui.components.FinanceOption
 import com.appfinanzas.prototype.ui.components.FinanceOptionSelector
 import com.appfinanzas.prototype.ui.components.FinanceScreen
@@ -33,6 +34,10 @@ private val typeOptions = InvestmentType.entries.map { type ->
 }
 
 private val currencyOptions = Currency.entries.map { FinanceOption(value = it.name, label = it.code) }
+
+private val strategyOptions = listOf(
+    FinanceOption(value = AddInvestmentViewModel.STRATEGY_AUTOMATIC, label = "Automático"),
+) + ProjectionStrategy.entries.map { FinanceOption(value = it.name, label = it.label) }
 
 @Composable
 fun AddInvestmentScreen(
@@ -54,7 +59,6 @@ fun AddInvestmentScreen(
         subtitle = "",
         selectedTab = Routes.INVESTMENTS,
         onNavigate = onNavigate,
-        modifier = Modifier.imePadding(),
     ) {
         FinanceOptionSelector(
             label = "Tipo de instrumento",
@@ -86,6 +90,34 @@ fun AddInvestmentScreen(
             selectedValue = state.currency?.name,
             onSelect = viewModel::onCurrencySelected,
         )
+        FinanceOptionSelector(
+            label = "Método de proyección",
+            options = strategyOptions,
+            selectedValue = state.projectionStrategy?.name ?: AddInvestmentViewModel.STRATEGY_AUTOMATIC,
+            onSelect = viewModel::onProjectionStrategySelected,
+        )
+        if (state.projectionStrategy == null && state.recommendedStrategyLabel.isNotBlank()) {
+            FinanceLabel("Recomendado: ${state.recommendedStrategyLabel}")
+        }
+        val needsReturn = state.projectionStrategy == ProjectionStrategy.FIXED_RATE ||
+            state.projectionStrategy == ProjectionStrategy.COMPOUND_INTEREST ||
+            state.projectionStrategy == ProjectionStrategy.MANUAL
+        if (needsReturn) {
+            FinanceTextField(
+                label = "Rendimiento anual esperado (%)",
+                value = state.projectionReturnText,
+                onValueChange = viewModel::onProjectionReturnChange,
+                error = state.fieldErrors["projectionReturn"],
+            )
+        }
+        if (state.projectionStrategy == ProjectionStrategy.MONTE_CARLO) {
+            FinanceTextField(
+                label = "Volatilidad anual estimada (%)",
+                value = state.projectionVolatilityText,
+                onValueChange = viewModel::onProjectionVolatilityChange,
+                error = state.fieldErrors["projectionVolatility"],
+            )
+        }
         if (!state.isEditing) {
             FinanceTextField(
                 label = "Valor inicial",

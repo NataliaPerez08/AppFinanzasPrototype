@@ -2,6 +2,7 @@ package com.appfinanzas.prototype.domain.validation
 
 import com.appfinanzas.prototype.domain.model.Currency
 import com.appfinanzas.prototype.domain.model.InvestmentType
+import com.appfinanzas.prototype.domain.model.ProjectionStrategy
 import java.time.LocalDate
 
 data class FieldError(
@@ -17,6 +18,9 @@ data class InvestmentForm(
     val currency: Currency? = null,
     val initialValueText: String = "",
     val dateText: String = "",
+    val projectionStrategy: ProjectionStrategy? = null,
+    val projectionReturnText: String = "",
+    val projectionVolatilityText: String = "",
 )
 
 data class InvestmentEditForm(
@@ -25,6 +29,9 @@ data class InvestmentEditForm(
     val name: String = "",
     val symbol: String = "",
     val currency: Currency? = null,
+    val projectionStrategy: ProjectionStrategy? = null,
+    val projectionReturnText: String = "",
+    val projectionVolatilityText: String = "",
 )
 
 object InvestmentFormValidator {
@@ -36,8 +43,11 @@ object InvestmentFormValidator {
     const val FIELD_CURRENCY = "currency"
     const val FIELD_INITIAL_VALUE = "initialValue"
     const val FIELD_DATE = "date"
+    const val FIELD_PROJECTION_RETURN = "projectionReturn"
+    const val FIELD_PROJECTION_VOLATILITY = "projectionVolatility"
 
     private const val MAX_AMOUNT = 1_000_000_000.0
+    private const val MAX_RATE = 1_000.0
 
     fun validate(form: InvestmentForm): List<FieldError> {
         val errors = mutableListOf<FieldError>()
@@ -70,6 +80,8 @@ object InvestmentFormValidator {
             date.isAfter(LocalDate.now()) -> errors += FieldError(FIELD_DATE, "La fecha no puede ser futura")
         }
 
+        validateProjection(form.projectionStrategy, form.projectionReturnText, form.projectionVolatilityText, errors)
+
         return errors
     }
 
@@ -92,7 +104,31 @@ object InvestmentFormValidator {
             errors += FieldError(FIELD_CURRENCY, "Selecciona una moneda")
         }
 
+        validateProjection(form.projectionStrategy, form.projectionReturnText, form.projectionVolatilityText, errors)
+
         return errors
+    }
+
+    private fun validateProjection(
+        strategy: ProjectionStrategy?,
+        returnText: String,
+        volatilityText: String,
+        errors: MutableList<FieldError>,
+    ) {
+        if (returnText.isNotBlank()) {
+            val value = returnText.toDoubleOrNull()
+            if (value == null || value < 0.0 || value > MAX_RATE) {
+                errors += FieldError(FIELD_PROJECTION_RETURN, "Rendimiento inválido")
+            }
+        } else if (strategy == ProjectionStrategy.MANUAL) {
+            errors += FieldError(FIELD_PROJECTION_RETURN, "Ingresa un rendimiento para el modo manual")
+        }
+        if (volatilityText.isNotBlank()) {
+            val value = volatilityText.toDoubleOrNull()
+            if (value == null || value < 0.0 || value > MAX_RATE) {
+                errors += FieldError(FIELD_PROJECTION_VOLATILITY, "Volatilidad inválida")
+            }
+        }
     }
 
     fun parseDate(text: String): LocalDate? =

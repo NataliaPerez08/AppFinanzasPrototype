@@ -12,7 +12,10 @@ class GetInvestmentDetail(
         combine(
             repository.observeInvestment(investmentId),
             repository.observeTransactions(investmentId),
-        ) { investment, transactions ->
-            investment?.let { InvestmentDetail(investment = it, transactions = transactions) }
+            repository.observePriceHistory(investmentId),
+        ) { investment, transactions, priceHistory ->
+            investment?.let {
+                InvestmentDetail(investment = it, transactions = transactions, priceHistory = priceHistory)
+            }
         }
 }

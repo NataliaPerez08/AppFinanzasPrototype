@@ -34,6 +34,9 @@ class UpdateInvestmentUseCase(
                 type = form.type!!,
                 institution = institution,
                 currency = form.currency!!,
+                projectionStrategy = form.projectionStrategy,
+                projectionReturn = form.projectionReturnText.toDoubleOrNull(),
+                projectionVolatility = form.projectionVolatilityText.toDoubleOrNull(),
             ),
         )
         return UpdateInvestmentResult.Success(investmentId)

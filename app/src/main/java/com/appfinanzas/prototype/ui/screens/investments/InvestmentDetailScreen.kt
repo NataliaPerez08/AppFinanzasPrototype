@@ -30,6 +30,7 @@ import com.appfinanzas.prototype.ui.components.FinanceLabel
 import com.appfinanzas.prototype.ui.components.FinanceLoadingState
 import com.appfinanzas.prototype.ui.components.FinancePanel
 import com.appfinanzas.prototype.ui.components.FinanceScreen
+import com.appfinanzas.prototype.ui.components.FinanceTextField
 import com.appfinanzas.prototype.ui.components.MetricCard
 import com.appfinanzas.prototype.ui.components.MoneyMetric
 import com.appfinanzas.prototype.ui.components.PercentageMetric
@@ -73,6 +74,7 @@ fun InvestmentDetailScreen(
             else -> InvestmentDetailContent(
                 investmentId = investmentId,
                 state = state,
+                viewModel = viewModel,
                 onNavigate = onNavigate,
                 onDelete = { showDeleteDialog = true },
             )
@@ -96,6 +98,7 @@ fun InvestmentDetailScreen(
 private fun InvestmentDetailContent(
     investmentId: Long,
     state: InvestmentDetailUiState,
+    viewModel: InvestmentDetailViewModel,
     onNavigate: (String) -> Unit,
     onDelete: () -> Unit,
 ) {
@@ -118,6 +121,7 @@ private fun InvestmentDetailContent(
     }
     Spacer(Modifier.height(8.dp))
     FinancePanel {
+        FinanceLabel("Método de proyección: ${state.projectionMethodLabel}")
         MetricCard(label = "Cantidad", value = String.format(Locale.US, "%.2f", state.quantity))
         MoneyMetric(label = "Capital invertido", amount = state.investedCapital)
         MoneyMetric(label = "Efectivo", amount = state.cashBalance)
@@ -126,6 +130,41 @@ private fun InvestmentDetailContent(
         MoneyMetric(label = "Ganancia", amount = state.profit, accent = true)
         MoneyMetric(label = "Ganancia realizada", amount = state.realizedProfit)
         PercentageMetric(label = "Rendimiento", percentage = state.performance)
+    }
+    Spacer(Modifier.height(8.dp))
+    FinancePanel {
+        SectionHeader(title = "Precios históricos")
+        FinanceLabel(
+            if (state.priceCount > 0) {
+                "${state.priceCount} precio(s) registrado(s)"
+            } else {
+                "Aún no hay precios registrados"
+            },
+        )
+        FinanceTextField(
+            label = "Precio ${state.currency.code}",
+            value = state.priceText,
+            onValueChange = viewModel::onPriceChange,
+            error = state.priceError,
+        )
+        FinanceTextField(
+            label = "Fecha",
+            value = state.priceDateText,
+            onValueChange = viewModel::onPriceDateChange,
+        )
+        Spacer(Modifier.height(8.dp))
+        FinanceButton(
+            text = "Guardar precio",
+            enabled = !state.isSavingPrice,
+            onClick = viewModel::savePricePoint,
+        )
+        if (state.priceSaved) {
+            Text(
+                text = "GUARDADO",
+                style = MaterialTheme.typography.labelMedium,
+                color = FinanzasColors.Accent,
+            )
+        }
     }
     Spacer(Modifier.height(8.dp))
     FinanceButton(text = "Registrar movimiento") {

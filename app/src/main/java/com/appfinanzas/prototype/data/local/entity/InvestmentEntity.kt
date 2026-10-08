@@ -38,4 +38,7 @@ data class InvestmentEntity(
     @ColumnInfo(defaultValue = "0") val cashBalance: Double = 0.0,
     @ColumnInfo(defaultValue = "0") val averageCost: Double = 0.0,
     @ColumnInfo(defaultValue = "0") val realizedProfit: Double = 0.0,
+    val projectionStrategy: String? = null,
+    val projectionReturn: Double? = null,
+    val projectionVolatility: Double? = null,
 )

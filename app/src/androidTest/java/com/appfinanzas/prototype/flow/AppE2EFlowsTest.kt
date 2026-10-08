@@ -69,20 +69,16 @@ class AppE2EFlowsTest {
     }
 
     @Test
-    fun createInvestment_throughUi_appearsInPortfolio() {
+    fun investmentForm_cancelKeepsEmpty_createPersistsInvestment() {
         waitForText("+ AGREGAR INVERSIÓN")
         composeRule.onNodeWithText("+ AGREGAR INVERSIÓN").performClick()
         waitForText("NUEVA INVERSIÓN")
 
-        clickScrolling("ACCIÓN")
-        clickScrolling("GBM")
-        typeInto("Símbolo / nombre", "Apple")
-        typeInto("Símbolo", "AAPL")
-        clickScrolling("MXN")
-        typeInto("Valor inicial", "10000")
-        clickScrolling("GUARDAR INVERSIÓN")
+        clickScrolling("CANCELAR")
+        waitForText("NO HAY INVERSIONES")
+        assertTrue(runBlocking { repository.observeInvestments().first() }.isEmpty())
 
-        waitForText("APPLE")
+        addInvestmentThroughUi("ACCIÓN", "Apple", "AAPL", "10000")
 
         composeRule.onNodeWithText("INVERSIONES").performClick()
         waitForText("APPLE")
@@ -91,36 +87,48 @@ class AppE2EFlowsTest {
     }
 
     @Test
-    fun cancelNewInvestment_doesNotPersistData() {
-        waitForText("+ AGREGAR INVERSIÓN")
-        composeRule.onNodeWithText("+ AGREGAR INVERSIÓN").performClick()
-        waitForText("NUEVA INVERSIÓN")
-
-        clickScrolling("CANCELAR")
-
-        waitForText("NO HAY INVERSIONES")
-        assertTrue(runBlocking { repository.observeInvestments().first() }.isEmpty())
-    }
-
-    @Test
-    fun deleteInvestment_fromDetail_returnsToEmptyPortfolio() {
-        seedInvestment()
+    fun projection_updatesAsMoreInvestmentsAreAdded() {
+        composeRule.onNodeWithText("PROYECCIÓN").performClick()
+        waitForText("SIN PATRIMONIO")
 
         composeRule.onNodeWithText("INVERSIONES").performClick()
-        waitForText("APPLE")
-        composeRule.onNodeWithText("APPLE").performClick()
-        waitForText("ELIMINAR INVERSIÓN")
+        addInvestmentThroughUi("CETES", "Cetes", "CETES", "10000")
 
-        clickScrolling("ELIMINAR INVERSIÓN")
-        waitForText("ELIMINAR")
-        composeRule.onNodeWithText("ELIMINAR").performClick()
+        composeRule.onNodeWithText("PROYECCIÓN").performClick()
+        waitForText("PROYECTADO")
+        waitForText("$10,000.00 MXN")
+        waitForText("$10,850.00 MXN")
 
-        waitForText("NO HAY INVERSIONES")
-        assertTrue(runBlocking { repository.observeInvestments().first() }.isEmpty())
+        composeRule.onNodeWithText("INVERSIONES").performClick()
+        addInvestmentThroughUi("ETF / FONDO", "Voo", "VOO", "5000")
+
+        composeRule.onNodeWithText("PROYECCIÓN").performClick()
+        waitForText("P50")
+        waitForText("P10")
+        waitForText("RANGO PROBABLE")
+        waitForText("$15,000.00 MXN")
+        waitForText("$16,275.00 MXN")
+        waitForText("$1,275.00 MXN")
+
+        composeRule.onNodeWithText("INVERSIONES").performClick()
+        addInvestmentThroughUi("SOFIPO", "Nu", "NU", "20000")
+
+        composeRule.onNodeWithText("PROYECCIÓN").performClick()
+        waitForText("ESCENARIOS")
+        waitForText("Pesimista")
+        waitForText("$35,000.00 MXN")
+        waitForText("$37,975.00 MXN")
+
+        clickScrolling("VER ACTIVOS")
+        waitForText("MONTE CARLO")
+        waitForText("TASA FIJA")
+        waitForText("INTERÉS COMPUESTO")
+
+        assertTrue(runBlocking { repository.observeInvestments().first() }.size == 3)
     }
 
     @Test
-    fun cancelDeleteDialog_keepsInvestment() {
+    fun deleteInvestmentDialog_cancelKeepsInvestment_confirmRemovesIt() {
         seedInvestment()
 
         composeRule.onNodeWithText("INVERSIONES").performClick()
@@ -131,9 +139,15 @@ class AppE2EFlowsTest {
         clickScrolling("ELIMINAR INVERSIÓN")
         waitForText("ELIMINAR")
         composeRule.onNodeWithText("CANCELAR").performClick()
-
         waitForText("VALOR ACTUAL")
         assertTrue(runBlocking { repository.observeInvestments().first() }.isNotEmpty())
+
+        clickScrolling("ELIMINAR INVERSIÓN")
+        waitForText("ELIMINAR")
+        composeRule.onNodeWithText("ELIMINAR").performClick()
+
+        waitForText("NO HAY INVERSIONES")
+        assertTrue(runBlocking { repository.observeInvestments().first() }.isEmpty())
     }
 
     @Test
@@ -185,7 +199,7 @@ class AppE2EFlowsTest {
     }
 
     @Test
-    fun recreatingActivity_preservesNewInvestmentForm() {
+    fun recreatingActivity_preservesOpenInvestmentAndTransactionForms() {
         waitForText("+ AGREGAR INVERSIÓN")
         composeRule.onNodeWithText("+ AGREGAR INVERSIÓN").performClick()
         waitForText("NUEVA INVERSIÓN")
@@ -203,10 +217,8 @@ class AppE2EFlowsTest {
         composeRule.onNodeWithContentDescription("Símbolo / nombre").assertTextContains("Apple")
         composeRule.onNodeWithContentDescription("Símbolo").assertTextContains("AAPL")
         composeRule.onNodeWithContentDescription("Valor inicial").assertTextContains("10000")
-    }
 
-    @Test
-    fun recreatingActivity_preservesNewTransactionForm() {
+        clickScrolling("CANCELAR")
         seedInvestment()
 
         composeRule.onNodeWithText("INVERSIONES").performClick()
@@ -362,6 +374,26 @@ class AppE2EFlowsTest {
                 repository.getTransactions(investmentId).none { it.type == TransactionType.COMPRA }
             },
         )
+    }
+
+    private fun addInvestmentThroughUi(
+        typeLabel: String,
+        name: String,
+        symbol: String,
+        initialValue: String,
+    ) {
+        composeRule.onNodeWithText("+ AGREGAR INVERSIÓN").performClick()
+        waitForText("NUEVA INVERSIÓN")
+
+        clickScrolling(typeLabel)
+        clickScrolling("GBM")
+        typeInto("Símbolo / nombre", name)
+        typeInto("Símbolo", symbol)
+        clickScrolling("MXN")
+        typeInto("Valor inicial", initialValue)
+        clickScrolling("GUARDAR INVERSIÓN")
+
+        waitForText("REGISTRAR MOVIMIENTO")
     }
 
     private fun waitForText(text: String) {

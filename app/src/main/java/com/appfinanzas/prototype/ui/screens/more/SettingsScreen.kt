@@ -60,6 +60,16 @@ fun SettingsScreen(onNavigate: (String) -> Unit) {
                     onValueChange = viewModel::onExpectedReturnChange,
                 )
                 FinanceTextField(
+                    label = "Volatilidad estimada",
+                    value = state.volatilityText,
+                    onValueChange = viewModel::onVolatilityChange,
+                )
+                FinanceTextField(
+                    label = "Aporte mensual",
+                    value = state.contributionText,
+                    onValueChange = viewModel::onContributionChange,
+                )
+                FinanceTextField(
                     label = "Tipo de cambio USD/MXN",
                     value = state.usdToMxnRateText,
                     onValueChange = viewModel::onUsdToMxnRateChange,

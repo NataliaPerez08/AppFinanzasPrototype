@@ -39,6 +39,8 @@ class SettingsViewModel(
                         inflationText = settings.estimatedInflation.toString(),
                         isrText = settings.estimatedIsr.toString(),
                         expectedReturnText = settings.expectedReturn.toString(),
+                        volatilityText = settings.estimatedVolatility.toString(),
+                        contributionText = settings.monthlyContribution.toString(),
                     )
                 }
             } catch (e: Exception) {
@@ -67,6 +69,14 @@ class SettingsViewModel(
         _uiState.update { it.copy(expectedReturnText = value, saved = false) }
     }
 
+    fun onVolatilityChange(value: String) {
+        _uiState.update { it.copy(volatilityText = value, saved = false) }
+    }
+
+    fun onContributionChange(value: String) {
+        _uiState.update { it.copy(contributionText = value, saved = false) }
+    }
+
     fun save() {
         val state = _uiState.value
         if (state.isSubmitting) return
@@ -74,6 +84,8 @@ class SettingsViewModel(
         val isr = state.isrText.toDoubleOrNull()
         val expectedReturn = state.expectedReturnText.toDoubleOrNull()
         val usdToMxnRate = state.usdToMxnRateText.toDoubleOrNull()
+        val volatility = state.volatilityText.toDoubleOrNull()
+        val contribution = state.contributionText.toDoubleOrNull()
         if (inflation == null || inflation < 0.0) {
             _uiState.update { it.copy(formError = "Inflación inválida") }
             return
@@ -84,6 +96,14 @@ class SettingsViewModel(
         }
         if (expectedReturn == null || expectedReturn < 0.0) {
             _uiState.update { it.copy(formError = "Rendimiento inválido") }
+            return
+        }
+        if (volatility == null || volatility < 0.0) {
+            _uiState.update { it.copy(formError = "Volatilidad inválida") }
+            return
+        }
+        if (contribution == null || contribution < 0.0) {
+            _uiState.update { it.copy(formError = "Aporte inválido") }
             return
         }
         if (usdToMxnRate == null || usdToMxnRate <= 0.0) {
@@ -98,6 +118,8 @@ class SettingsViewModel(
                     estimatedInflation = inflation,
                     estimatedIsr = isr,
                     expectedReturn = expectedReturn,
+                    estimatedVolatility = volatility,
+                    monthlyContribution = contribution,
                     usdToMxnRate = usdToMxnRate,
                 ),
             )

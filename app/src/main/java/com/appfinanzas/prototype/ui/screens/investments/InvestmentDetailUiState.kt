@@ -3,6 +3,7 @@ package com.appfinanzas.prototype.ui.screens.investments
 import com.appfinanzas.prototype.domain.model.Currency
 import com.appfinanzas.prototype.domain.model.InvestmentDetail
 import com.appfinanzas.prototype.domain.model.Transaction
+import com.appfinanzas.prototype.domain.projection.ProjectionStrategyResolver
 import com.appfinanzas.prototype.ui.format.DateFormatter
 
 data class InvestmentDetailUiState(
@@ -24,6 +25,13 @@ data class InvestmentDetailUiState(
     val performance: Double = 0.0,
     val history: List<Float> = emptyList(),
     val transactions: List<TransactionUi> = emptyList(),
+    val priceCount: Int = 0,
+    val projectionMethodLabel: String = "",
+    val priceText: String = "",
+    val priceDateText: String = "",
+    val priceError: String? = null,
+    val priceSaved: Boolean = false,
+    val isSavingPrice: Boolean = false,
     val isEmpty: Boolean = false,
     val error: String? = null,
 )
@@ -55,6 +63,9 @@ internal fun InvestmentDetail.toUiState(): InvestmentDetailUiState {
         performance = investment.returnPercentage,
         history = investment.history,
         transactions = transactions.map { it.toUi() },
+        priceCount = priceHistory.size,
+        projectionMethodLabel = investment.projectionStrategy?.label
+            ?: "Automático (${ProjectionStrategyResolver.resolve(investment.type).label})",
     )
 }
 

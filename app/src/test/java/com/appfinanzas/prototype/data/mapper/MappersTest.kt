@@ -4,6 +4,7 @@ import com.appfinanzas.prototype.domain.model.Currency
 import com.appfinanzas.prototype.domain.model.Institution
 import com.appfinanzas.prototype.domain.model.Investment
 import com.appfinanzas.prototype.domain.model.InvestmentType
+import com.appfinanzas.prototype.domain.model.ProjectionStrategy
 import com.appfinanzas.prototype.domain.model.Transaction
 import com.appfinanzas.prototype.domain.model.TransactionType
 import java.time.LocalDate
@@ -37,6 +38,38 @@ class MappersTest {
         val restored = InvestmentMapper.toDomain(entity, domain.institution)
 
         assertEquals(domain, restored)
+    }
+
+    @Test
+    fun `investment projection configuration round trips`() {
+        val domain = Investment(
+            id = 5,
+            name = "VOO",
+            description = "Vanguard",
+            symbol = "VOO",
+            type = InvestmentType.ETF_FONDO,
+            institution = Institution(id = 1, name = "GBM", kind = "Casa de Bolsa"),
+            currency = Currency.MXN,
+            currentPrice = 100.0,
+            priceChange = 0.0,
+            dailyChangePercentage = 0.0,
+            quantity = 1.0,
+            investedCapital = 1_000.0,
+            currentValue = 1_000.0,
+            dailyValueChange = 0.0,
+            returnPercentage = 0.0,
+            history = emptyList(),
+            projectionStrategy = ProjectionStrategy.MONTE_CARLO,
+            projectionReturn = 12.5,
+            projectionVolatility = 18.0,
+        )
+
+        val entity = InvestmentMapper.toEntity(domain)
+        val restored = InvestmentMapper.toDomain(entity, domain.institution)
+
+        assertEquals(domain, restored)
+        assertEquals(ProjectionStrategy.MONTE_CARLO, restored.projectionStrategy)
+        assertEquals(12.5, restored.projectionReturn!!, 0.001)
     }
 
     @Test

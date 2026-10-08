@@ -5,6 +5,7 @@ import com.appfinanzas.prototype.data.local.AppDatabase
 import com.appfinanzas.prototype.data.local.entity.PreferencesEntity
 import com.appfinanzas.prototype.data.mapper.InstitutionMapper
 import com.appfinanzas.prototype.data.mapper.InvestmentMapper
+import com.appfinanzas.prototype.data.mapper.PricePointMapper
 import com.appfinanzas.prototype.data.mapper.TransactionMapper
 import com.appfinanzas.prototype.data.mapper.toFloatList
 import com.appfinanzas.prototype.domain.ledger.LedgerCalculator
@@ -12,6 +13,7 @@ import com.appfinanzas.prototype.domain.model.AppSettings
 import com.appfinanzas.prototype.domain.model.Currency
 import com.appfinanzas.prototype.domain.model.Institution
 import com.appfinanzas.prototype.domain.model.Investment
+import com.appfinanzas.prototype.domain.model.PricePoint
 import com.appfinanzas.prototype.domain.model.Transaction
 import com.appfinanzas.prototype.domain.repository.InvestmentRepository
 import kotlinx.coroutines.flow.Flow
@@ -27,6 +29,7 @@ class RoomInvestmentRepository(
     private val investmentDao = database.investmentDao()
     private val transactionDao = database.transactionDao()
     private val preferencesDao = database.preferencesDao()
+    private val pricePointDao = database.pricePointDao()
 
     override fun observeInvestments(): Flow<List<Investment>> =
         combine(
@@ -56,6 +59,18 @@ class RoomInvestmentRepository(
     override fun observeTransactions(investmentId: Long): Flow<List<Transaction>> =
         transactionDao.observeByInvestment(investmentId)
             .map { entities -> entities.map { TransactionMapper.toDomain(it) } }
+
+    override fun observePriceHistory(investmentId: Long): Flow<List<PricePoint>> =
+        pricePointDao.observeByInvestment(investmentId)
+            .map { entities -> entities.map { PricePointMapper.toDomain(it) } }
+
+    override fun observePriceHistory(): Flow<Map<Long, List<PricePoint>>> =
+        pricePointDao.observeAll()
+            .map { entities ->
+                entities
+                    .groupBy { it.investmentId }
+                    .mapValues { (_, points) -> points.map { PricePointMapper.toDomain(it) } }
+            }
 
     override fun observePortfolioHistory(): Flow<List<Float>> =
         preferencesDao.observe(AppDatabase.PORTFOLIO_HISTORY_KEY)
@@ -87,6 +102,9 @@ class RoomInvestmentRepository(
     override suspend fun getTransactions(investmentId: Long): List<Transaction> =
         transactionDao.getByInvestment(investmentId).map { TransactionMapper.toDomain(it) }
 
+    override suspend fun getPriceHistory(investmentId: Long): List<PricePoint> =
+        pricePointDao.getByInvestment(investmentId).map { PricePointMapper.toDomain(it) }
+
     override suspend fun saveInvestment(investment: Investment): Long =
         investmentDao.insert(InvestmentMapper.toEntity(investment))
 
@@ -110,6 +128,9 @@ class RoomInvestmentRepository(
 
     override suspend fun saveTransaction(transaction: Transaction): Long =
         transactionDao.insert(TransactionMapper.toEntity(transaction))
+
+    override suspend fun savePricePoint(pricePoint: PricePoint): Long =
+        pricePointDao.insert(PricePointMapper.toEntity(pricePoint))
 
     override suspend fun saveTransactionWithInvestment(
         transaction: Transaction,
@@ -175,14 +196,25 @@ class RoomInvestmentRepository(
             preferencesDao.observe(AppSettings.KEY_ESTIMATED_ISR),
             preferencesDao.observe(AppSettings.KEY_EXPECTED_RETURN),
             preferencesDao.observe(AppSettings.KEY_USD_TO_MXN_RATE),
-        ) { base, inflation, isr, expectedReturn, usdToMxnRate ->
+            preferencesDao.observe(AppSettings.KEY_ESTIMATED_VOLATILITY),
+            preferencesDao.observe(AppSettings.KEY_MONTHLY_CONTRIBUTION),
+        ) { values ->
+            val base = values[0]?.value
+            val inflation = values[1]?.value
+            val isr = values[2]?.value
+            val expectedReturn = values[3]?.value
+            val usdToMxnRate = values[4]?.value
+            val volatility = values[5]?.value
+            val monthlyContribution = values[6]?.value
             AppSettings(
-                baseCurrency = base?.value?.let { runCatching { Currency.valueOf(it) }.getOrNull() }
+                baseCurrency = base?.let { runCatching { Currency.valueOf(it) }.getOrNull() }
                     ?: AppSettings().baseCurrency,
-                estimatedInflation = inflation?.value?.toDoubleOrNull() ?: AppSettings().estimatedInflation,
-                estimatedIsr = isr?.value?.toDoubleOrNull() ?: AppSettings().estimatedIsr,
-                expectedReturn = expectedReturn?.value?.toDoubleOrNull() ?: AppSettings().expectedReturn,
-                usdToMxnRate = usdToMxnRate?.value?.toDoubleOrNull() ?: AppSettings().usdToMxnRate,
+                estimatedInflation = inflation?.toDoubleOrNull() ?: AppSettings().estimatedInflation,
+                estimatedIsr = isr?.toDoubleOrNull() ?: AppSettings().estimatedIsr,
+                expectedReturn = expectedReturn?.toDoubleOrNull() ?: AppSettings().expectedReturn,
+                usdToMxnRate = usdToMxnRate?.toDoubleOrNull() ?: AppSettings().usdToMxnRate,
+                estimatedVolatility = volatility?.toDoubleOrNull() ?: AppSettings().estimatedVolatility,
+                monthlyContribution = monthlyContribution?.toDoubleOrNull() ?: AppSettings().monthlyContribution,
             )
         }
 
@@ -209,6 +241,18 @@ class RoomInvestmentRepository(
             PreferencesEntity(
                 key = AppSettings.KEY_EXPECTED_RETURN,
                 value = settings.expectedReturn.toString(),
+            ),
+        )
+        preferencesDao.upsert(
+            PreferencesEntity(
+                key = AppSettings.KEY_ESTIMATED_VOLATILITY,
+                value = settings.estimatedVolatility.toString(),
+            ),
+        )
+        preferencesDao.upsert(
+            PreferencesEntity(
+                key = AppSettings.KEY_MONTHLY_CONTRIBUTION,
+                value = settings.monthlyContribution.toString(),
             ),
         )
         preferencesDao.upsert(

@@ -5,6 +5,7 @@ import com.appfinanzas.prototype.data.sampleInvestment
 import com.appfinanzas.prototype.domain.model.Currency
 import com.appfinanzas.prototype.domain.model.Transaction
 import com.appfinanzas.prototype.domain.model.TransactionType
+import com.appfinanzas.prototype.domain.usecase.AddPricePointUseCase
 import com.appfinanzas.prototype.domain.usecase.DeleteInvestmentUseCase
 import com.appfinanzas.prototype.domain.usecase.GetInvestmentDetail
 import java.time.LocalDate
@@ -58,7 +59,12 @@ class InvestmentDetailViewModelTest {
                 ),
             ),
         )
-        val viewModel = InvestmentDetailViewModel(5L, GetInvestmentDetail(repo), DeleteInvestmentUseCase(repo))
+        val viewModel = InvestmentDetailViewModel(
+            5L,
+            GetInvestmentDetail(repo),
+            DeleteInvestmentUseCase(repo),
+            AddPricePointUseCase(repo),
+        )
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
@@ -74,10 +80,12 @@ class InvestmentDetailViewModelTest {
 
     @Test
     fun `loads empty state for unknown investment`() = runTest {
+        val repo = TestInvestmentRepository(investments = listOf(sampleInvestment(id = 1)))
         val viewModel = InvestmentDetailViewModel(
             99L,
-            GetInvestmentDetail(TestInvestmentRepository(investments = listOf(sampleInvestment(id = 1)))),
-            DeleteInvestmentUseCase(TestInvestmentRepository()),
+            GetInvestmentDetail(repo),
+            DeleteInvestmentUseCase(repo),
+            AddPricePointUseCase(repo),
         )
         advanceUntilIdle()
 
@@ -88,10 +96,12 @@ class InvestmentDetailViewModelTest {
 
     @Test
     fun `loads error state when repository fails`() = runTest {
+        val repo = TestInvestmentRepository(error = RuntimeException("boom"))
         val viewModel = InvestmentDetailViewModel(
             1L,
-            GetInvestmentDetail(TestInvestmentRepository(error = RuntimeException("boom"))),
-            DeleteInvestmentUseCase(TestInvestmentRepository()),
+            GetInvestmentDetail(repo),
+            DeleteInvestmentUseCase(repo),
+            AddPricePointUseCase(repo),
         )
         advanceUntilIdle()
 
@@ -99,5 +109,25 @@ class InvestmentDetailViewModelTest {
         assertFalse(state.isLoading)
         assertNotNull(state.error)
         assertEquals("boom", state.error)
+    }
+
+    @Test
+    fun `saves a price point and reflects the count`() = runTest {
+        val repo = TestInvestmentRepository(investments = listOf(sampleInvestment(id = 5)))
+        val viewModel = InvestmentDetailViewModel(
+            5L,
+            GetInvestmentDetail(repo),
+            DeleteInvestmentUseCase(repo),
+            AddPricePointUseCase(repo),
+        )
+        advanceUntilIdle()
+
+        viewModel.onPriceChange("123.45")
+        viewModel.savePricePoint()
+        advanceUntilIdle()
+
+        assertEquals(1, viewModel.uiState.value.priceCount)
+        assertTrue(viewModel.uiState.value.priceSaved)
+        assertEquals("", viewModel.uiState.value.priceText)
     }
 }

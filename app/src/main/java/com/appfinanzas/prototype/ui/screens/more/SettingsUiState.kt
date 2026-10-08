@@ -9,6 +9,8 @@ data class SettingsUiState(
     val inflationText: String = "",
     val isrText: String = "",
     val expectedReturnText: String = "",
+    val volatilityText: String = "",
+    val contributionText: String = "",
     val isSubmitting: Boolean = false,
     val saved: Boolean = false,
     val formError: String? = null,

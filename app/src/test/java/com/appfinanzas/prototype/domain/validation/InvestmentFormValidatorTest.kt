@@ -2,6 +2,7 @@ package com.appfinanzas.prototype.domain.validation
 
 import com.appfinanzas.prototype.domain.model.Currency
 import com.appfinanzas.prototype.domain.model.InvestmentType
+import com.appfinanzas.prototype.domain.model.ProjectionStrategy
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -73,5 +74,33 @@ class InvestmentFormValidatorTest {
         assertTrue(InvestmentFormValidator.FIELD_NAME in fields)
         assertTrue(InvestmentFormValidator.FIELD_CURRENCY in fields)
         assertTrue(InvestmentFormValidator.FIELD_INITIAL_VALUE in fields)
+    }
+
+    @Test
+    fun `blank projection fields are allowed`() {
+        assertTrue(InvestmentFormValidator.validate(validForm()).isEmpty())
+    }
+
+    @Test
+    fun `invalid projection return and volatility are errors`() {
+        val negativeReturn = InvestmentFormValidator.validate(validForm().copy(projectionReturnText = "-1"))
+        val badVolatility = InvestmentFormValidator.validate(validForm().copy(projectionVolatilityText = "abc"))
+        assertTrue(negativeReturn.any { it.field == InvestmentFormValidator.FIELD_PROJECTION_RETURN })
+        assertTrue(badVolatility.any { it.field == InvestmentFormValidator.FIELD_PROJECTION_VOLATILITY })
+    }
+
+    @Test
+    fun `manual strategy requires a return`() {
+        val errors = InvestmentFormValidator.validateEdit(
+            InvestmentEditForm(
+                type = InvestmentType.ACCION,
+                institutionId = 1,
+                name = "Apple",
+                symbol = "AAPL",
+                currency = Currency.USD,
+                projectionStrategy = ProjectionStrategy.MANUAL,
+            ),
+        )
+        assertTrue(errors.any { it.field == InvestmentFormValidator.FIELD_PROJECTION_RETURN })
     }
 }

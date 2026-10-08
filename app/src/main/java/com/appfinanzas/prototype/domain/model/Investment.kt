@@ -20,4 +20,7 @@ data class Investment(
     val cashBalance: Double = 0.0,
     val averageCost: Double = 0.0,
     val realizedProfit: Double = 0.0,
+    val projectionStrategy: ProjectionStrategy? = null,
+    val projectionReturn: Double? = null,
+    val projectionVolatility: Double? = null,
 )

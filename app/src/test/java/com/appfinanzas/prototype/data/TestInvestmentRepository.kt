@@ -5,9 +5,11 @@ import com.appfinanzas.prototype.domain.model.Currency
 import com.appfinanzas.prototype.domain.model.Institution
 import com.appfinanzas.prototype.domain.model.Investment
 import com.appfinanzas.prototype.domain.model.InvestmentType
+import com.appfinanzas.prototype.domain.model.PricePoint
 import com.appfinanzas.prototype.domain.model.Transaction
 import com.appfinanzas.prototype.domain.repository.InvestmentRepository
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -18,6 +20,7 @@ class TestInvestmentRepository(
     investments: List<Investment> = emptyList(),
     private val history: List<Float> = emptyList(),
     transactions: Map<Long, List<Transaction>> = emptyMap(),
+    priceHistory: Map<Long, List<PricePoint>> = emptyMap(),
     private val institutions: List<Institution> = listOf(
         Institution(id = 1, name = "GBM", kind = "Casa de Bolsa"),
         Institution(id = 2, name = "CETES Directo", kind = "Renta fija"),
@@ -27,10 +30,12 @@ class TestInvestmentRepository(
 
     private val investmentState = MutableStateFlow(investments)
     private val transactionState = MutableStateFlow(transactions.toMutableMap())
+    private val priceHistoryState = MutableStateFlow(priceHistory.toMutableMap())
     private val institutionState = MutableStateFlow(institutions)
     private val settingsState = MutableStateFlow(AppSettings())
     private var nextInvestmentId = (investments.maxOfOrNull { it.id } ?: 0L) + 1
     private var nextTransactionId = (transactions.values.flatten().maxOfOrNull { it.id } ?: 0L) + 1
+    private var nextPricePointId = (priceHistory.values.flatten().maxOfOrNull { it.id } ?: 0L) + 1
     private var nextInstitutionId = (institutions.maxOfOrNull { it.id } ?: 0L) + 1
 
     private fun <T> guarded(inner: Flow<T>): Flow<T> = flow {
@@ -45,6 +50,12 @@ class TestInvestmentRepository(
 
     override fun observeTransactions(investmentId: Long): Flow<List<Transaction>> =
         guarded(transactionState.map { it[investmentId] ?: emptyList() })
+
+    override fun observePriceHistory(investmentId: Long): Flow<List<PricePoint>> =
+        guarded(priceHistoryState.map { it[investmentId] ?: emptyList() })
+
+    override fun observePriceHistory(): Flow<Map<Long, List<PricePoint>>> =
+        guarded(priceHistoryState.map { it.toMap() })
 
     override fun observePortfolioHistory(): Flow<List<Float>> = flow {
         error?.let { throw it }
@@ -65,6 +76,9 @@ class TestInvestmentRepository(
 
     override suspend fun getTransactions(investmentId: Long): List<Transaction> =
         transactionState.value[investmentId] ?: emptyList()
+
+    override suspend fun getPriceHistory(investmentId: Long): List<PricePoint> =
+        priceHistoryState.value[investmentId] ?: emptyList()
 
     override suspend fun saveInvestment(investment: Investment): Long {
         error?.let { throw it }
@@ -93,6 +107,7 @@ class TestInvestmentRepository(
         error?.let { throw it }
         investmentState.update { list -> list.filterNot { it.id == investmentId } }
         transactionState.update { state -> state.toMutableMap().also { it.remove(investmentId) } }
+        priceHistoryState.update { state -> state.toMutableMap().also { it.remove(investmentId) } }
     }
 
     override suspend fun saveTransaction(transaction: Transaction): Long {
@@ -100,6 +115,18 @@ class TestInvestmentRepository(
         val id = if (transaction.id == 0L) nextTransactionId++ else transaction.id
         val saved = transaction.copy(id = id)
         transactionState.update { state ->
+            state.toMutableMap().also { map ->
+                map[saved.investmentId] = (map[saved.investmentId] ?: emptyList()) + saved
+            }
+        }
+        return id
+    }
+
+    override suspend fun savePricePoint(pricePoint: PricePoint): Long {
+        error?.let { throw it }
+        val id = if (pricePoint.id == 0L) nextPricePointId++ else pricePoint.id
+        val saved = pricePoint.copy(id = id)
+        priceHistoryState.update { state ->
             state.toMutableMap().also { map ->
                 map[saved.investmentId] = (map[saved.investmentId] ?: emptyList()) + saved
             }
@@ -194,3 +221,17 @@ fun sampleInvestment(
     averageCost = currentPrice,
     realizedProfit = 0.0,
 )
+
+fun priceHistory(
+    investmentId: Long = 1L,
+    prices: List<Double>,
+    startDate: LocalDate = LocalDate.of(2024, 1, 1),
+    stepDays: Long = 30,
+): List<PricePoint> = prices.mapIndexed { index, price ->
+    PricePoint(
+        id = (index + 1).toLong(),
+        investmentId = investmentId,
+        date = startDate.plusDays(index * stepDays),
+        price = price,
+    )
+}

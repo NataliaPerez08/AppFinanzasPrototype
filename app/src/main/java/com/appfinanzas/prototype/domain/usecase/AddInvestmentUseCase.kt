@@ -50,6 +50,9 @@ class AddInvestmentUseCase(
             cashBalance = initialValue,
             averageCost = 0.0,
             realizedProfit = 0.0,
+            projectionStrategy = form.projectionStrategy,
+            projectionReturn = form.projectionReturnText.toDoubleOrNull(),
+            projectionVolatility = form.projectionVolatilityText.toDoubleOrNull(),
         )
         val openingDeposit = Transaction(
             id = 0,

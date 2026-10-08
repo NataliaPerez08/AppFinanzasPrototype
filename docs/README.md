@@ -9,7 +9,11 @@ neo-brutalista.
 Fases 1–5 del roadmap de integración UI completadas sobre la arquitectura
 existente. Hardening P0 aplicado: ledger consistente, operaciones atómicas en
 Room, editar/eliminar inversiones y movimientos, validaciones y precisión
-monetaria. Ver `HARDENING_STATUS.md` para el detalle verificado.
+monetaria. Extensiones posteriores: conversión multi-moneda (MXN/USD), motor de
+proyección híbrido (tasa fija, interés compuesto, histórico, Monte Carlo,
+escenarios) y App Lock con PIN + biometría. Ver `HARDENING_STATUS.md`,
+`PROJECTION_ENGINE_STATUS.md` y `SECURITY_AND_INSETS_IMPLEMENTATION_REPORT.md`
+para el detalle verificado.
 
 ## Stack
 
@@ -45,14 +49,15 @@ Formato monetario, porcentual y de fecha centralizado (`MoneyFormatter`,
 
 ## Tests
 
-```powershell
-.\gradlew.bat :app:testDebugUnitTest           # unitarios (JVM)
-.\gradlew.bat :app:connectedDebugAndroidTest   # instrumentados (requiere emulador/dispositivo)
-.\gradlew.bat :app:lintDebug
+```bash
+./gradlew :app:testDebugUnitTest           # unitarios (JVM)
+./gradlew :app:connectedDebugAndroidTest   # instrumentados (requiere emulador/dispositivo)
+./gradlew :app:lintDebug
 ```
 
 Cobertura: ledger, casos de uso, repositorio Room, migraciones, flujos de
-integración y E2E de UI. Detalle en `HARDENING_STATUS.md`.
+integración, E2E de UI, motor de proyección híbrido y App Lock. Detalle en
+`HARDENING_STATUS.md` y `PROJECTION_ENGINE_STATUS.md`.
 
 ## Documentación
 
@@ -62,5 +67,10 @@ Todos los documentos viven en `docs/`.
 - `ROADMAP_UI_INTEGRATION.md` — fases 1–5 de integración UI.
 - `HARDENING_PLAN.md` — plan de hardening.
 - `HARDENING_STATUS.md` — estado de cumplimiento, pendientes y huecos de cobertura.
+- `PULSO — Hybrid Portfolio Projection Engine Implementation Plan.md` — plan del motor de proyección híbrido.
+- `PROJECTION_ENGINE_STATUS.md` — estado de implementación del motor de proyección.
+- `PULSO_SECURITY_AND_INSETS_IMPLEMENTATION.md` — especificación de App Lock e insets.
+- `SECURITY_AND_INSETS_IMPLEMENTATION_REPORT.md` — reporte de implementación de App Lock e insets.
+- `PULSO_APP_NAMING_UPDATE.md` — guía de naming y branding PULSO.
 - `FASE_6_PRODUCTION_RELEASE_GOOGLE_PLAY.md` — plan de release 1.0 y Google Play.
 - `RELEASE_SIGNING.md` — configuración segura de firma de producción.

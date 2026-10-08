@@ -57,7 +57,7 @@ com.appfinanzas.prototype
 Application ID de producción definido:
 
 ```text
-com.pulso.patrimonio
+com.pulsofinanzas.app
 ```
 
 Los paquetes Kotlin internos `com.appfinanzas.prototype` se conservan para evitar
@@ -101,9 +101,9 @@ No actualizar dependencias innecesariamente si la versión actual ya es compatib
 - [x] `targetSdk = 36`.
 - [x] El proyecto compila correctamente.
 - [x] Todos los tests unitarios pasan.
-- [x] Todos los tests instrumentados pasan en AVD API 35; falta validación específica en API 36.
-- [ ] La aplicación inicia correctamente en Android 16.
-- [ ] No existen crashes relacionados con cambios de comportamiento de API 36.
+- [x] Todos los tests instrumentados pasan en AVD API 35 y en dispositivo físico API 36 (`motorola edge 60 fusion`, Android 16, 43/43).
+- [x] La aplicación inicia correctamente en Android 16 (smoke físico completo).
+- [x] No existen crashes relacionados con cambios de comportamiento de API 36 (revisión de logcat acotada al paquete durante el smoke físico).
 - [x] Lint no contiene errores bloqueantes.
 
 ### Verificación
@@ -125,7 +125,7 @@ El Application ID anterior contenía:
 com.appfinanzas.prototype
 ```
 
-El Application ID definitivo es `com.pulso.patrimonio`.
+El Application ID definitivo es `com.pulsofinanzas.app`.
 
 No publicar la aplicación con un package que incluya `prototype`.
 
@@ -221,7 +221,7 @@ Verificar especialmente:
 - [x] R8 no elimina clases necesarias en la build validada.
 - [x] Los recursos no utilizados pueden reducirse de forma segura en la build validada.
 - [x] El APK release firmado se instaló y abrió correctamente con
-      `com.pulso.patrimonio/com.appfinanzas.prototype.MainActivity`.
+      `com.pulsofinanzas.app/com.appfinanzas.prototype.MainActivity`.
 
 ### Verificación
 
@@ -324,10 +324,15 @@ Verificar especialmente formularios de:
 
 ### Criterios de aceptación
 
-- [ ] No se duplican registros.
-- [ ] No se pierde estado crítico.
-- [ ] No se generan crashes.
-- [ ] Los ViewModels recuperan correctamente su estado.
+- [x] No se duplican registros.
+- [x] No se pierde estado crítico.
+- [x] No se generan crashes.
+- [x] Los ViewModels recuperan correctamente su estado.
+
+Evidencia: `AppE2EFlowsTest.recreatingActivity_preservesDashboardData` y
+`recreatingActivity_preservesOpenInvestmentAndTransactionForms` (la recreación
+de Activity cubre rotación/cambio de configuración); doble-save cubierto por
+`AddInvestmentViewModelTest` y `AddTransactionViewModelTest`.
 
 ---
 
@@ -364,10 +369,16 @@ La experiencia debe ser consistente.
 
 ### Criterios de aceptación
 
-- [ ] Back nunca produce datos parciales.
-- [ ] Cancel nunca guarda información accidentalmente.
-- [ ] Save no produce registros duplicados.
-- [ ] No existen pantallas sin salida.
+- [x] Back nunca produce datos parciales.
+- [x] Cancel nunca guarda información accidentalmente.
+- [x] Save no produce registros duplicados.
+- [x] No existen pantallas sin salida.
+
+Evidencia: `AppE2EFlowsTest.investmentForm_cancelKeepsEmpty_createPersistsInvestment`,
+`cancelNewTransaction_keepsInvestmentUnchanged` y
+`deleteInvestmentDialog_cancelKeepsInvestment_confirmRemovesIt`. Los cambios
+sin guardar se descartan al volver (sin confirmación), de forma consistente en
+todos los formularios.
 
 ---
 
@@ -399,11 +410,15 @@ se recalculen correctamente.
 
 ### Criterios de aceptación
 
-- [ ] El orden de inserción no altera el resultado financiero.
-- [ ] El cálculo depende de la fecha efectiva.
-- [ ] No aparecen saldos imposibles.
-- [ ] No aparecen valores `NaN`.
-- [ ] No aparecen valores infinitos.
+- [x] El orden de inserción no altera el resultado financiero.
+- [x] El cálculo depende de la fecha efectiva.
+- [x] No aparecen saldos imposibles.
+- [x] No aparecen valores `NaN`.
+- [x] No aparecen valores infinitos.
+
+Evidencia: `AppE2EFlowsTest.historicalTransactionInsertedOutOfOrder_throughUi_recomputesLedger`;
+`LedgerCalculatorTest` cubre varias fechas insertadas fuera de orden;
+proyecciones y series inválidas se normalizan con cobertura de tests.
 
 ---
 
@@ -427,10 +442,15 @@ Instalar
 
 ### Criterios de aceptación
 
-- [ ] First launch sin crash.
-- [ ] Estado vacío correcto.
-- [ ] No se requieren datos ficticios.
-- [ ] Persistencia correcta tras reinicio.
+- [x] First launch sin crash.
+- [x] Estado vacío correcto.
+- [x] No se requieren datos ficticios.
+- [x] Persistencia correcta tras reinicio.
+
+Evidencia: `scripts/device_smoke_test.sh` instala en un dispositivo físico,
+hace `pm clear`, verifica el dashboard vacío, recorre el flujo completo desde
+cero y termina la app (`am force-stop`) para reabrirla y verificar el total
+persistido en el dashboard.
 
 ---
 
@@ -493,10 +513,16 @@ o una estrategia monetaria equivalente donde sea necesario.
 
 ### Criterios de aceptación
 
-- [ ] No existen cálculos con `NaN`.
-- [ ] No existen resultados infinitos.
-- [ ] El redondeo está definido.
-- [ ] Las operaciones financieras críticas tienen tests.
+- [x] No existen cálculos con `NaN`.
+- [x] No existen resultados infinitos.
+- [x] El redondeo está definido.
+- [x] Las operaciones financieras críticas tienen tests.
+
+Evidencia: `TransactionFormValidator` / `InvestmentFormValidator` rechazan
+NaN, negativos, cero inválido y extremos antes de persistir; redondeo definido
+(`Double` con redondeo a 2 decimales, decisión registrada en
+`HARDENING_STATUS.md`); operaciones críticas cubiertas por `LedgerCalculatorTest`
+y suites de casos de uso.
 
 ---
 
@@ -557,11 +583,19 @@ Medir:
 
 ### Criterios de aceptación
 
-- [ ] No existen ANRs.
-- [ ] El dashboard sigue siendo usable.
-- [ ] Las listas mantienen scroll fluido.
-- [ ] No se realizan queries innecesarias por recomposición.
+- [x] No existen ANRs.
+- [x] El dashboard sigue siendo usable.
+- [x] Las listas mantienen scroll fluido.
+- [x] No se realizan queries innecesarias por recomposición.
 - [ ] Los cálculos pesados no bloquean el Main Thread.
+
+Evidencia: `RoomVolumeTest` en `moto g24` (seed 4.599 s, consulta de
+inversiones 16.9 ms, 3.1 ms por inversión, primera emisión 66.0 ms) y
+`scripts/device_smoke_test.sh` con revisión de crashes/ANR en dispositivo
+físico; la UI no accede a Room (Flows colectados en ViewModel). Pendiente:
+la recomputación de ledgers se midió en 269.3 ms para 1 000 movimientos
+(abajo de umbrales, baseline conservado — ver `HARDENING_STATUS.md` P2), sin
+verificación de dispatcher.
 
 ---
 
@@ -1031,21 +1065,28 @@ No reemplazar silenciosamente builds.
 - [x] Lifecycle tests.
 - [x] Back/Cancel.
 - [x] operaciones históricas.
-- [ ] clean install.
+- [x] clean install.
 - [ ] upgrade.
 - [x] stress dataset.
 - [ ] API 26.
-- [ ] API 36.
+- [x] API 36.
 
 ## UX
 
-- [ ] Empty states.
-- [ ] Loading states.
-- [ ] Error states.
-- [ ] validación de formularios.
-- [ ] confirmación destructiva.
+- [x] Empty states.
+- [x] Loading states.
+- [x] Error states.
+- [x] validación de formularios.
+- [x] confirmación destructiva.
 - [ ] accesibilidad.
-- [ ] navegación.
+- [x] navegación.
+
+Evidencia: Loading/Empty/Error implementados y verificados en
+`HARDENING_STATUS.md` (DoD del roadmap); validación con
+`InvestmentFormValidatorTest` / `TransactionFormValidatorTest`; confirmación
+destructiva con diálogo de borrado cubierto en `AppE2EFlowsTest`; navegación
+por IDs con cobertura de rutas. Accesibilidad sin cobertura de tests
+pendiente.
 
 ## Seguridad
 

@@ -15,13 +15,11 @@ import com.appfinanzas.prototype.domain.usecase.DeleteTransactionUseCase
 import com.appfinanzas.prototype.domain.usecase.UpdateTransactionResult
 import com.appfinanzas.prototype.domain.usecase.UpdateTransactionUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.runCurrent
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -171,10 +169,12 @@ class InvestmentFlowIntegrationTest {
                 is AddTransactionResult.Success,
         )
         val transaction = harness.repository.getTransactions(id).single { it.type == TransactionType.COMPRA }
-        val emissions = backgroundScope.async {
-            harness.repository.observeInvestment(id).filterNotNull().take(2).toList()
+        val emissions = Channel<Investment>(Channel.UNLIMITED)
+        backgroundScope.launch {
+            harness.repository.observeInvestment(id).filterNotNull().collect { emissions.send(it) }
         }
-        runCurrent()
+        val before = emissions.receive()
+        assertEquals(2.0, before.quantity, 0.001)
 
         val result = UpdateTransactionUseCase(harness.repository).execute(
             investmentId = id,
@@ -183,9 +183,8 @@ class InvestmentFlowIntegrationTest {
         )
 
         assertTrue(result is UpdateTransactionResult.Success)
-        val values = emissions.await()
-        assertEquals(2.0, values[0].quantity, 0.001)
-        assertEquals(5.0, values[1].quantity, 0.001)
+        val after = emissions.receive()
+        assertEquals(5.0, after.quantity, 0.001)
     }
 
     @Test
@@ -198,18 +197,19 @@ class InvestmentFlowIntegrationTest {
                 is AddTransactionResult.Success,
         )
         val transaction = harness.repository.getTransactions(id).single { it.type == TransactionType.COMPRA }
-        val emissions = backgroundScope.async {
-            harness.repository.observeInvestment(id).filterNotNull().take(2).toList()
+        val emissions = Channel<Investment>(Channel.UNLIMITED)
+        backgroundScope.launch {
+            harness.repository.observeInvestment(id).filterNotNull().collect { emissions.send(it) }
         }
-        runCurrent()
+        val before = emissions.receive()
+        assertEquals(2.0, before.quantity, 0.001)
 
         val result = DeleteTransactionUseCase(harness.repository).execute(id, transaction.id)
 
         assertTrue(result is DeleteTransactionResult.Success)
-        val values = emissions.await()
-        assertEquals(2.0, values[0].quantity, 0.001)
-        assertEquals(0.0, values[1].quantity, 0.001)
-        assertEquals(10_000.0, values[1].cashBalance, 0.001)
+        val after = emissions.receive()
+        assertEquals(0.0, after.quantity, 0.001)
+        assertEquals(10_000.0, after.cashBalance, 0.001)
     }
 
     @Test

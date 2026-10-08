@@ -2,8 +2,8 @@
 set -Eeuo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PACKAGE="com.pulso.patrimonio"
-ACTIVITY="${PACKAGE}/.MainActivity"
+PACKAGE="com.pulsofinanzas.app"
+ACTIVITY="${PACKAGE}/com.appfinanzas.prototype.MainActivity"
 RESULTS_DIR="${ROOT_DIR}/build/device-test-results/$(date +%Y%m%d-%H%M%S)"
 ADB=(adb)
 
@@ -31,6 +31,17 @@ transport="$("${ADB[@]}" get-state 2>/dev/null)"
 model="$("${ADB[@]}" shell getprop ro.product.model | tr -d '\r')"
 sdk="$("${ADB[@]}" shell getprop ro.build.version.sdk | tr -d '\r')"
 log "dispositivo físico: $model, API $sdk, serial $SERIAL"
+
+# Los eventos inyectados por la instrumentación no cuentan como actividad de
+# usuario: si la pantalla se apaga o el keyguard aparece a mitad de la suite,
+# Compose no construye jerarquía y los tests fallan con "No compose hierarchies".
+# El stay-on-USB persiste entre corridas y se restablece solo al reiniciar.
+"${ADB[@]}" shell svc power stayon usb >/dev/null
+"${ADB[@]}" shell input keyevent KEYCODE_WAKEUP >/dev/null
+"${ADB[@]}" shell wm dismiss-keyguard >/dev/null
+if "${ADB[@]}" shell dumpsys window | grep -q 'isKeyguardShowing=true'; then
+    fail "el keyguard sigue activo (bloqueo con PIN/biometría): desbloquea el dispositivo y vuelve a ejecutar"
+fi
 
 dump_ui() {
     local name="$1"
@@ -154,6 +165,8 @@ refresh_ui investment_detail
 require_text "VOO"
 "${ADB[@]}" shell input swipe 360 1200 360 700 400
 sleep 0.8
+"${ADB[@]}" shell input swipe 360 1800 360 600 400
+sleep 0.8
 refresh_ui investment_detail_scrolled
 require_text "DEPOSITO"
 
@@ -168,6 +181,9 @@ tap_text "INVERSIONES"
 refresh_ui investments
 tap_text "VOO"
 refresh_ui detail_before_transaction
+"${ADB[@]}" shell input swipe 360 1200 360 500 400
+sleep 0.8
+refresh_ui detail_before_transaction_scrolled
 tap_text "REGISTRAR MOVIMIENTO"
 refresh_ui transaction_form
 tap_text "COMPRA"
@@ -186,6 +202,8 @@ refresh_ui detail_after_transaction
 require_text "2.00"
 "${ADB[@]}" shell input swipe 360 1200 360 700 400
 sleep 0.8
+"${ADB[@]}" shell input swipe 360 1800 360 600 400
+sleep 0.8
 refresh_ui detail_after_transaction_scrolled
 require_text '$201.00 MXN'
 
@@ -200,12 +218,16 @@ step "Proyección y escenarios"
 tap_text "PROYECCIÓN"
 refresh_ui projection
 require_text "VALOR ACTUAL"
-require_text "VALOR NOMINAL"
-require_text "DESPUÉS DE ISR"
+require_text "P50"
+require_text "RANGO PROBABLE"
+require_text "FUENTES DE CRECIMIENTO"
 require_text "VALOR REAL"
-require_text "CONSERVADOR"
-require_text "BASE"
-require_text "OPTIMISTA"
+"${ADB[@]}" shell input swipe 360 1800 360 600 400
+sleep 0.8
+refresh_ui projection_scenarios
+require_text "ESCENARIOS"
+require_text "Pesimista"
+require_text "Optimista"
 
 step "Configuración persistente"
 tap_text "MÁS"
@@ -233,11 +255,28 @@ refresh_ui institutions_after_add
 require_text "Klar"
 
 step "revisión de crashes y ANR"
-if "${ADB[@]}" logcat -d | grep -qE "FATAL EXCEPTION|ANR in ${PACKAGE}|Process .* has died"; then
+if "${ADB[@]}" logcat -d | grep -qE "AndroidRuntime: Process: ${PACKAGE}|ANR in ${PACKAGE}|Process ${PACKAGE} .* has died"; then
     collect_diagnostics
     fail "se detectó crash o ANR"
 fi
 "${ADB[@]}" shell pidof "$PACKAGE" >/dev/null || fail "el proceso de la app no está vivo"
 
 "${ADB[@]}" logcat -d > "$RESULTS_DIR/logcat.txt"
+
+step "terminación real de la app y reapertura"
+"${ADB[@]}" shell am force-stop "$PACKAGE"
+sleep 2
+"${ADB[@]}" logcat -c
+"${ADB[@]}" shell am start -n "$ACTIVITY" >/dev/null
+sleep 3
+refresh_ui dashboard_after_restart
+require_text "VALOR ACTUAL"
+require_text '$9,999.00 MXN'
+if "${ADB[@]}" logcat -d | grep -qE "AndroidRuntime: Process: ${PACKAGE}|ANR in ${PACKAGE}"; then
+    collect_diagnostics
+    fail "se detectó crash o ANR tras la reapertura"
+fi
+"${ADB[@]}" shell pidof "$PACKAGE" >/dev/null || fail "el proceso de la app no está vivo tras la reapertura"
+"${ADB[@]}" logcat -d > "$RESULTS_DIR/logcat_restart.txt"
+
 log "PASS: smoke test completo. Evidencias: $RESULTS_DIR"

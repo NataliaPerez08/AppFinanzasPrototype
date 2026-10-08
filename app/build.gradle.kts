@@ -23,10 +23,10 @@ val releaseKeyAlias = signingValue("keyAlias", "PULSO_KEY_ALIAS")
 val releaseKeyPassword = signingValue("keyPassword", "PULSO_KEY_PASSWORD")
 
 android {
-    namespace = "com.pulso.patrimonio"
+    namespace = "com.pulsofinanzas.app"
     compileSdk = 36
     defaultConfig {
-        applicationId = "com.pulso.patrimonio"
+        applicationId = "com.pulsofinanzas.app"
         minSdk = 26
         targetSdk = 36
         versionCode = 1

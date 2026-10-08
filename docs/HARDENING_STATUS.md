@@ -7,14 +7,18 @@ integración del roadmap (`ROADMAP_UI_INTEGRATION.md`), verificado con código y
 
 | Métrica | Valor |
 |---|---|
-| Tests unitarios (JVM) | 167 / 167 |
-| Tests instrumentados (Android) | 33 / 33 |
-| Flujos E2E de aplicación | 5 (crear inversión, registrar compra, eliminar inversión, editar movimiento, eliminar movimiento) |
+| Tests unitarios (JVM) | 263 / 263 |
+| Tests instrumentados (Android) | 43 / 43 |
+| Flujos E2E de aplicación | 11 en `AppE2EFlowsTest`: crear/cancelar inversión, compra, editar/eliminar movimiento, eliminar inversión, recreación de Activity (dashboard y formularios), ciclo de vida completo, histórico fuera de orden y reactividad de proyección |
 | Migración Room 1 → 2 | Validada |
 | `assembleDebug` | OK |
 | `lintDebug` | OK |
+| Smoke físico (API 36, Android 16) | PASS — flujo E2E completo + terminación/reapertura real de la app con datos persistidos (2026-10-07) |
 
-Última verificación: emulador `Medium_Phone` (API 37, x86_64) + JVM local.
+Última verificación: `motorola edge 60 fusion` (API 36, Android 16) + JVM local,
+2026-10-07 — `scripts/device_smoke_test.sh` PASS: 263/263 unitarios, 43/43
+instrumentados, instalación limpia, flujo E2E completo de UI, revisión de
+crashes/ANR y terminación/reapertura real de la app con datos persistidos.
 
 ---
 
@@ -45,9 +49,10 @@ integración del roadmap (`ROADMAP_UI_INTEGRATION.md`), verificado con código y
       `InvestmentFlowIntegrationTest.dashboardAndDetailMetricsMatch`.
 - [x] **Cambios Room reflejados por Flow.**
       `InvestmentFlowIntegrationTest.roomChangesPropagateThroughFlows`.
-- [ ] **Datos persistentes tras cerrar/reabrir la app (parcial).**
-      `PersistenceFlowTest.dataSurvivesDatabaseReopen` cierra y reabre la BD;
-      falta probar terminación y apertura real de la app.
+- [x] **Datos persistentes tras cerrar/reabrir la app.**
+      `PersistenceFlowTest.dataSurvivesDatabaseReopen` cierra y reabre la BD, y
+      el smoke físico termina la app real (`am force-stop`) y verifica tras
+      reabrirla el total persistido (`$9,999.00 MXN`) en el dashboard.
 - [x] **Fórmulas financieras probadas.** `LedgerCalculatorTest`, `ProjectionCalculatorTest`.
 - [x] **Tests existentes y nuevos en verde.**
 - [x] **`test`, build y lint ejecutados.**
@@ -203,11 +208,35 @@ durante la validación QA de flujos. Los huecos que tocan integridad financiera 
 
 ---
 
+## Extensiones posteriores al hardening
+
+- **Multi-moneda.** `CurrencyConverter` convierte MXN/USD con el tipo
+      persistido en configuración; agregados y proyección usan la moneda base
+      (`CurrencyConverterTest`, `GetPortfolioSummaryTest`).
+- **Motor de proyección híbrido.** Plan completo implementado (V1–V3) — ver
+      `PROJECTION_ENGINE_STATUS.md`.
+- **App Lock + insets.** PIN de 4 dígitos (PBKDF2), biometría, cooldown y
+      auto-lock; corrección global de window insets — ver
+      `SECURITY_AND_INSETS_IMPLEMENTATION_REPORT.md`.
+- **Smoke físico.** `scripts/device_smoke_test.sh` ejecuta en un dispositivo
+      físico: build, tests, instalación limpia (`pm clear`), flujo E2E completo
+      de UI, revisión de crashes/ANR y terminación/reapertura real de la app
+      (`am force-stop` + relanzamiento con el total persistido verificado).
+      PASS en `motorola edge 60 fusion` (API 36, Android 16), 2026-10-07.
+      El script mantiene la pantalla activa (`svc power stayon usb`) y falla
+      rápido si el keyguard sigue activo.
+- **Flake corregido.** `editingTransaction_emitsUpdatedInvestmentThroughFlow` y
+      `deletingTransaction_emitsRecomputedInvestmentThroughFlow` racéaban con el
+      executor real de Room (el `take(2)` podía perder la emisión pre-operación);
+      reescritos con `Channel` + `receive()` secuencial, determinista.
+
+---
+
 ## Comandos de verificación
 
-```powershell
-.\gradlew.bat :app:testDebugUnitTest
-.\gradlew.bat :app:connectedDebugAndroidTest
-.\gradlew.bat :app:assembleDebug
-.\gradlew.bat :app:lintDebug
+```bash
+./gradlew :app:testDebugUnitTest
+./gradlew :app:connectedDebugAndroidTest
+./gradlew :app:assembleDebug
+./gradlew :app:lintDebug
 ```

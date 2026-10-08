@@ -17,7 +17,7 @@ import com.appfinanzas.prototype.ui.components.FinancePanel
 import com.appfinanzas.prototype.ui.components.FinanceScreen
 import com.appfinanzas.prototype.ui.navigation.Routes
 import com.appfinanzas.prototype.ui.theme.FinanzasColors
-import com.pulso.patrimonio.R
+import com.pulsofinanzas.app.R
 
 @Composable
 fun MoreScreen(onNavigate: (String) -> Unit) {
@@ -69,6 +69,26 @@ fun MoreScreen(onNavigate: (String) -> Unit) {
             ) {
                 Text(
                     text = "CONFIGURACIÓN",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = FinanzasColors.Text,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = "→",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = FinanzasColors.Accent,
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onNavigate(Routes.SECURITY) }
+                    .padding(vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "SEGURIDAD",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = FinanzasColors.Text,

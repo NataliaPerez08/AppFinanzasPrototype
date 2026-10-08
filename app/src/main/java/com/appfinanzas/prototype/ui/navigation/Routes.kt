@@ -14,9 +14,13 @@ object Routes {
     const val EDIT_TRANSACTION = "editTransaction/{investmentId}/{transactionId}"
     const val INSTITUTIONS = "institutions"
     const val SETTINGS = "settings"
+    const val SECURITY = "security"
+    const val SECURITY_PIN = "securityPin/{mode}"
+    const val SECURITY_FORGOT = "securityForgot"
 
     const val ARG_INVESTMENT_ID = "investmentId"
     const val ARG_TRANSACTION_ID = "transactionId"
+    const val ARG_MODE = "mode"
 
     fun investmentDetail(investmentId: Long): String = "investmentDetail/$investmentId"
 
@@ -26,4 +30,9 @@ object Routes {
 
     fun editTransaction(investmentId: Long, transactionId: Long): String =
         "editTransaction/$investmentId/$transactionId"
+
+    const val MODE_CREATE = "create"
+    const val MODE_CHANGE = "change"
+
+    fun securityPin(mode: String): String = "securityPin/$mode"
 }

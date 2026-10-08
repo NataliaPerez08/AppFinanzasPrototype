@@ -2,7 +2,5 @@
     <style name="Theme.AppFinanzas" parent="android:style/Theme.Material.Light.NoActionBar">
         <item name="android:fontFamily">monospace</item>
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:statusBarColor">#F4F3F1</item>
-        <item name="android:navigationBarColor">#F4F3F1</item>
     </style>
 </resources>
